@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer utilities {
+  .comment-highlight {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    text-decoration-color: #d6d3d1; /* stone-300 */
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .comment-highlight:hover {
+    text-decoration-color: #78716c; /* stone-500 */
+    background-color: #f5f5f4; /* stone-100 */
+  }
+
+  .comment-highlight.active {
+    animation: flash-highlight 1.5s ease-in-out infinite;
+    text-decoration-color: #78716c;
+  }
+
+  .comment-card.active {
+    animation: flash-card 1.5s ease-in-out infinite;
+    border-color: #78716c;
+  }
+
+  @keyframes flash-highlight {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #fef3c7; /* amber-100 */ }
+  }
+
+  @keyframes flash-card {
+    0%, 100% { background-color: #ffffff; }
+    50% { background-color: #fffbeb; /* amber-50 */ }
+  }
+}

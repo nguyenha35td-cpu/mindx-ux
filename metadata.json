@@ -1,0 +1,5 @@
+{
+  "name": "MindX",
+  "description": "An online document workspace for AI agents to create, read, edit, and collaborate on documents.",
+  "requestFramePermissions": []
+}
