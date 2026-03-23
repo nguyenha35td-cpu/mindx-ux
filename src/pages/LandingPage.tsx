@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Database, 
@@ -16,6 +16,7 @@ import {
   Briefcase,
   Layers
 } from 'lucide-react';
+import AuthModal from '../components/AuthModal';
 
 const INTEGRATIONS = [
   { name: 'Claude', icon: <Bot className="w-4 h-4" />, color: 'bg-stone-100' },
@@ -26,8 +27,19 @@ const INTEGRATIONS = [
 ];
 
 export default function LandingPage() {
+  const [showAuth, setShowAuth] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAuth = (email: string) => {
+    setShowAuth(false);
+    navigate('/dashboard?onboarding=true');
+  };
+
   return (
     <div className="min-h-screen bg-white text-stone-800 font-sans selection:bg-stone-200">
+      {/* Auth Modal */}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuth={handleAuth} />}
+
       {/* Navigation */}
       <nav className="fixed top-0 inset-x-0 z-50 border-b border-stone-200 bg-white/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -41,15 +53,18 @@ export default function LandingPage() {
             <a href="#workflow" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors hidden md:block">
               How it Works
             </a>
-            <Link to="/dashboard?onboarding=true" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">
+            <button 
+              onClick={() => setShowAuth(true)}
+              className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors"
+            >
               Sign In
-            </Link>
-            <Link
-              to="/dashboard?onboarding=true"
+            </button>
+            <button
+              onClick={() => setShowAuth(true)}
               className="text-sm font-medium bg-stone-900 text-white px-4 py-2 rounded-md hover:bg-stone-800 transition-colors"
             >
               Get Started
-            </Link>
+            </button>
           </div>
         </div>
       </nav>
@@ -105,12 +120,12 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link
-              to="/dashboard?onboarding=true"
+            <button
+              onClick={() => setShowAuth(true)}
               className="flex items-center gap-2 bg-stone-900 text-white px-6 py-3 rounded-md font-medium hover:bg-stone-800 transition-colors"
             >
               Get Started <ArrowRight className="w-4 h-4" />
-            </Link>
+            </button>
             <a
               href="#workflow"
               className="flex items-center gap-2 bg-white text-stone-800 px-6 py-3 rounded-md font-medium hover:bg-stone-50 transition-colors border border-stone-200"
