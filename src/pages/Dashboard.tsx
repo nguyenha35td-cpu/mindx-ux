@@ -145,6 +145,174 @@ const initialActivities: Activity[] = [
     targetName: 'Competitor Analysis',
     targetType: 'Markdown',
     timestamp: '2026-03-19T07:00:00Z'
+  },
+  {
+    id: 'act6',
+    workspaceId: 'w1',
+    userId: 'a1',
+    userName: 'Claude Assistant',
+    userType: 'agent',
+    action: 'created',
+    targetName: 'API Integration Guide',
+    targetType: 'Markdown',
+    details: 'Initial draft with REST endpoints',
+    timestamp: '2026-03-20T10:00:00Z'
+  },
+  {
+    id: 'act7',
+    workspaceId: 'w1',
+    userId: 'a2',
+    userName: 'Data Analyzer',
+    userType: 'agent',
+    action: 'created',
+    targetName: 'Revenue Dashboard',
+    targetType: 'Table',
+    details: 'Built automated monthly revenue tracker',
+    timestamp: '2026-03-20T14:30:00Z'
+  },
+  {
+    id: 'act8',
+    workspaceId: 'w1',
+    userId: 'a2',
+    userName: 'Data Analyzer',
+    userType: 'agent',
+    action: 'commented on',
+    targetName: 'Q3 Financial Projections',
+    targetType: 'Table',
+    details: 'Flagged discrepancy in Q2 actuals',
+    timestamp: '2026-03-15T09:20:00Z'
+  },
+  {
+    id: 'act9',
+    workspaceId: 'w2',
+    userId: 'a3',
+    userName: 'Research Bot',
+    userType: 'agent',
+    action: 'updated',
+    targetName: 'Competitor Analysis',
+    targetType: 'Markdown',
+    details: 'Added competitor pricing comparison table',
+    timestamp: '2026-03-21T08:15:00Z'
+  },
+  {
+    id: 'act10',
+    workspaceId: 'w2',
+    userId: 'a3',
+    userName: 'Research Bot',
+    userType: 'agent',
+    action: 'created',
+    targetName: 'Market Trends Report',
+    targetType: 'Markdown',
+    details: 'Q1 2026 market analysis complete',
+    timestamp: '2026-03-18T11:00:00Z'
+  },
+  {
+    id: 'act11',
+    workspaceId: 'w1',
+    userId: 'a1',
+    userName: 'Claude Assistant',
+    userType: 'agent',
+    action: 'updated',
+    targetName: 'Project Alpha Architecture',
+    targetType: 'Markdown',
+    details: 'Refactored microservice diagram',
+    timestamp: '2026-03-21T16:00:00Z'
+  },
+  {
+    id: 'act12',
+    workspaceId: 'w1',
+    userId: 'u1',
+    userName: 'Human',
+    userType: 'human',
+    action: 'updated',
+    targetName: 'Project Alpha Architecture',
+    targetType: 'Markdown',
+    details: 'Reviewed and approved final version',
+    timestamp: '2026-03-22T09:00:00Z'
+  },
+  {
+    id: 'act13',
+    workspaceId: 'w1',
+    userId: 'u1',
+    userName: 'Human',
+    userType: 'human',
+    action: 'commented on',
+    targetName: 'Q3 Financial Projections',
+    targetType: 'Table',
+    details: 'Requested breakdown by region',
+    timestamp: '2026-03-20T15:30:00Z'
+  },
+  {
+    id: 'act14',
+    workspaceId: 'w1',
+    userId: 'u2',
+    userName: 'Alice Chen',
+    userType: 'human',
+    action: 'created',
+    targetName: 'Design System Guidelines',
+    targetType: 'Markdown',
+    details: 'Initial brand guidelines document',
+    timestamp: '2026-03-19T11:00:00Z'
+  },
+  {
+    id: 'act15',
+    workspaceId: 'w1',
+    userId: 'u2',
+    userName: 'Alice Chen',
+    userType: 'human',
+    action: 'modified',
+    targetName: 'User Flow Diagram',
+    targetType: 'Whiteboard',
+    details: 'Added onboarding flow',
+    timestamp: '2026-03-21T10:20:00Z'
+  },
+  {
+    id: 'act16',
+    workspaceId: 'w1',
+    userId: 'u3',
+    userName: 'Bob Smith',
+    userType: 'human',
+    action: 'created',
+    targetName: 'Sprint Planning Notes',
+    targetType: 'Markdown',
+    details: 'Sprint 12 kickoff notes',
+    timestamp: '2026-03-17T09:00:00Z'
+  },
+  {
+    id: 'act17',
+    workspaceId: 'w1',
+    userId: 'u3',
+    userName: 'Bob Smith',
+    userType: 'human',
+    action: 'commented on',
+    targetName: 'API Integration Guide',
+    targetType: 'Markdown',
+    details: 'Added edge case notes for auth flow',
+    timestamp: '2026-03-21T14:45:00Z'
+  },
+  {
+    id: 'act18',
+    workspaceId: 'w2',
+    userId: 'u4',
+    userName: 'Eve Davis',
+    userType: 'human',
+    action: 'created',
+    targetName: 'Marketing Strategy',
+    targetType: 'Markdown',
+    details: 'Q2 marketing plan draft',
+    timestamp: '2026-03-16T13:00:00Z'
+  },
+  {
+    id: 'act19',
+    workspaceId: 'w2',
+    userId: 'u4',
+    userName: 'Eve Davis',
+    userType: 'human',
+    action: 'updated',
+    targetName: 'Marketing Strategy',
+    targetType: 'Markdown',
+    details: 'Finalized budget allocations',
+    timestamp: '2026-03-20T16:00:00Z'
   }
 ];
 
@@ -163,6 +331,8 @@ export default function Dashboard() {
   const [newAgentName, setNewAgentName] = useState('');
   const [isNewDocMenuOpen, setIsNewDocMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const location = useLocation();
 
@@ -350,13 +520,13 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
               icon={<Bot className="w-4 h-4" />} 
               label="Agent Accounts" 
               active={activeTab === 'agents'} 
-              onClick={() => { setActiveTab('agents'); setIsCreatingAgent(false); }}
+              onClick={() => { setActiveTab('agents'); setIsCreatingAgent(false); setSelectedAgentId(null); }}
             />
             <NavItem 
               icon={<User className="w-4 h-4" />} 
               label="Human Accounts" 
               active={activeTab === 'users'} 
-              onClick={() => { setActiveTab('users'); setIsCreatingAgent(false); }}
+              onClick={() => { setActiveTab('users'); setIsCreatingAgent(false); setSelectedUserId(null); }}
             />
           </div>
         </div>
@@ -571,7 +741,120 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                       </form>
                     </div>
                   </div>
-                ) : agents.length === 0 ? (
+                ) : selectedAgentId ? (() => {
+                  const agent = agents.find(a => a.id === selectedAgentId);
+                  if (!agent) return null;
+                  const agentActivities = activities
+                    .filter(a => a.userId === selectedAgentId)
+                    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                  return (
+                    <div>
+                      <button 
+                        onClick={() => setSelectedAgentId(null)} 
+                        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 transition-colors text-sm font-medium"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back to Agents
+                      </button>
+
+                      {/* Agent Detail Card */}
+                      <div className="p-6 rounded-xl border border-stone-200/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)] mb-8">
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-stone-50 border border-stone-200/60 flex items-center justify-center text-stone-700 shadow-sm">
+                              <Bot className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <h2 className="text-lg font-semibold text-stone-900 tracking-tight">{agent.name}</h2>
+                              <p className="text-xs text-stone-500 font-medium">Global Agent Account</p>
+                            </div>
+                          </div>
+                          <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Agent Token</h3>
+                            <div className="relative">
+                              <div className="bg-stone-50/80 border border-stone-200/60 rounded-lg p-3.5 text-sm font-medium text-stone-700 break-all pr-12 tracking-wide">
+                                {agent.token}
+                              </div>
+                              <button 
+                                onClick={() => copyToClipboard(agent.token, `token-${agent.id}`)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-white hover:shadow-sm text-stone-500 transition-all"
+                              >
+                                {copiedStates[`token-${agent.id}`] ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                              <Wand2 className="w-3.5 h-3.5" /> Integration Prompt
+                            </h3>
+                            <div className="relative group">
+                              <div className="bg-stone-50/80 border border-stone-200/60 rounded-lg p-3.5 text-sm text-stone-600 whitespace-pre-wrap h-28 overflow-y-auto leading-relaxed">
+                                {generatePrompt(agent.token)}
+                              </div>
+                              <button 
+                                onClick={() => copyToClipboard(generatePrompt(agent.token), `prompt-${agent.id}`)}
+                                className="absolute right-2 top-2 p-1.5 rounded-md bg-white border border-stone-200/60 hover:bg-stone-50 text-stone-500 transition-colors opacity-0 group-hover:opacity-100 shadow-sm"
+                              >
+                                {copiedStates[`prompt-${agent.id}`] ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Agent Activity Feed */}
+                      <div>
+                        <h3 className="text-sm font-semibold text-stone-900 mb-4 flex items-center gap-2">
+                          <ActivityIcon className="w-4 h-4 text-stone-500" />
+                          Recent Activity
+                        </h3>
+                        {agentActivities.length > 0 ? (
+                          <div className="space-y-1">
+                            {agentActivities.map(activity => (
+                              <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl hover:bg-stone-50 transition-all group border border-transparent hover:border-stone-200/60 hover:shadow-sm">
+                                <div className="mt-0.5">
+                                  <div className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 border border-stone-200 shadow-sm">
+                                    <Bot className="w-4 h-4" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-stone-600 leading-relaxed">
+                                    <span className="font-bold text-stone-900">{activity.userName}</span>
+                                    {' '}{activity.action}{' '}
+                                    <span className="font-medium text-stone-900">{activity.targetName}</span>
+                                    {activity.details && (
+                                      <span className="text-stone-400 italic"> — {activity.details}</span>
+                                    )}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-1.5">
+                                    <p className="text-[10px] text-stone-400 flex items-center gap-1 font-medium">
+                                      <Clock className="w-3 h-3" />
+                                      {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                    <span className="text-[10px] text-stone-300">•</span>
+                                    <p className="text-[10px] text-stone-400 font-medium">
+                                      {new Date(activity.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-12 text-center border border-stone-200/60 border-dashed rounded-xl">
+                            <ActivityIcon className="w-8 h-8 text-stone-200 mx-auto mb-3" />
+                            <p className="text-stone-400 text-sm">No activity recorded for this agent</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })() : agents.length === 0 ? (
                   <div className="text-center py-12 border border-stone-200 border-dashed rounded-lg">
                     <Bot className="w-10 h-10 text-stone-300 mx-auto mb-3" />
                     <h3 className="text-sm font-medium mb-1">No Agents Found</h3>
@@ -584,60 +867,40 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                     </button>
                   </div>
                 ) : (
-                  agents.map(agent => (
-                    <div key={agent.id} className="p-6 rounded-xl border border-stone-200/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-stone-50 border border-stone-200/60 flex items-center justify-center text-stone-700 shadow-sm">
-                            <Bot className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h2 className="text-base font-semibold text-stone-900 tracking-tight">{agent.name}</h2>
-                            <p className="text-xs text-stone-500 font-medium">Global Agent Account</p>
-                          </div>
-                        </div>
-                        <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="grid md:grid-cols-2 gap-6">
-                        {/* Token Card */}
-                        <div>
-                          <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Agent Token</h3>
-                          <div className="relative">
-                            <div className="bg-stone-50/80 border border-stone-200/60 rounded-lg p-3.5 text-sm font-medium text-stone-700 break-all pr-12 tracking-wide">
-                              {agent.token}
+                  agents.map(agent => {
+                    const agentActivityCount = activities.filter(a => a.userId === agent.id).length;
+                    return (
+                      <div 
+                        key={agent.id} 
+                        onClick={() => setSelectedAgentId(agent.id)}
+                        className="p-5 rounded-xl border border-stone-200/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-stone-50 border border-stone-200/60 flex items-center justify-center text-stone-700 shadow-sm">
+                              <Bot className="w-5 h-5" />
                             </div>
-                            <button 
-                              onClick={() => copyToClipboard(agent.token, `token-${agent.id}`)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-white hover:shadow-sm text-stone-500 transition-all"
-                            >
-                              {copiedStates[`token-${agent.id}`] ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Prompt Card */}
-                        <div>
-                          <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                            <Wand2 className="w-3.5 h-3.5" /> Integration Prompt
-                          </h3>
-                          <div className="relative group">
-                            <div className="bg-stone-50/80 border border-stone-200/60 rounded-lg p-3.5 text-sm text-stone-600 whitespace-pre-wrap h-28 overflow-y-auto leading-relaxed">
-                              {generatePrompt(agent.token)}
+                            <div>
+                              <h2 className="text-base font-semibold text-stone-900 tracking-tight group-hover:text-stone-700 transition-colors">{agent.name}</h2>
+                              <p className="text-xs text-stone-500 font-medium">Global Agent Account</p>
                             </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-stone-400 font-medium flex items-center gap-1">
+                              <ActivityIcon className="w-3.5 h-3.5" />
+                              {agentActivityCount} activities
+                            </span>
                             <button 
-                              onClick={() => copyToClipboard(generatePrompt(agent.token), `prompt-${agent.id}`)}
-                              className="absolute right-2 top-2 p-1.5 rounded-md bg-white border border-stone-200/60 hover:bg-stone-50 text-stone-500 transition-colors opacity-0 group-hover:opacity-100 shadow-sm"
+                              className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors opacity-0 group-hover:opacity-100"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {copiedStates[`prompt-${agent.id}`] ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                              <MoreVertical className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </motion.div>
             )}
@@ -646,38 +909,124 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
               >
-                <div className="border border-stone-200/80 rounded-xl overflow-hidden bg-white shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-stone-50/50 text-stone-500 border-b border-stone-200/80">
-                      <tr>
-                        <th className="px-6 py-3 font-medium">Human</th>
-                        <th className="px-6 py-3 font-medium">Email</th>
-                        <th className="px-6 py-3 font-medium text-right"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {users.map(user => (
-                        <tr key={user.id} className="hover:bg-stone-50 transition-colors group">
-                          <td className="px-6 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-medium text-xs">
-                                {user.name.charAt(0)}
-                              </div>
-                              <span className="font-medium text-stone-800">{user.name}</span>
+                {selectedUserId ? (() => {
+                  const user = users.find(u => u.id === selectedUserId);
+                  if (!user) return null;
+                  const userActivities = activities
+                    .filter(a => a.userId === selectedUserId)
+                    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                  return (
+                    <div>
+                      <button 
+                        onClick={() => setSelectedUserId(null)} 
+                        className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 transition-colors text-sm font-medium"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back to Humans
+                      </button>
+
+                      {/* User Detail Card */}
+                      <div className="p-6 rounded-xl border border-stone-200/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)] mb-8">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center text-stone-700 font-semibold text-lg shadow-sm">
+                              {user.name.charAt(0)}
                             </div>
-                          </td>
-                          <td className="px-6 py-3 text-stone-500">{user.email}</td>
-                          <td className="px-6 py-3 text-right">
-                            <button className="p-1 rounded hover:bg-stone-200 text-stone-400 opacity-0 group-hover:opacity-100 transition-all">
+                            <div>
+                              <h2 className="text-lg font-semibold text-stone-900 tracking-tight">{user.name}</h2>
+                              <p className="text-xs text-stone-500 font-medium">{user.email}</p>
+                            </div>
+                          </div>
+                          <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* User Activity Feed */}
+                      <div>
+                        <h3 className="text-sm font-semibold text-stone-900 mb-4 flex items-center gap-2">
+                          <ActivityIcon className="w-4 h-4 text-stone-500" />
+                          Recent Activity
+                        </h3>
+                        {userActivities.length > 0 ? (
+                          <div className="space-y-1">
+                            {userActivities.map(activity => (
+                              <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl hover:bg-stone-50 transition-all group border border-transparent hover:border-stone-200/60 hover:shadow-sm">
+                                <div className="mt-0.5">
+                                  <div className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 border border-stone-200 shadow-sm">
+                                    <User className="w-4 h-4" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-stone-600 leading-relaxed">
+                                    <span className="font-bold text-stone-900">{activity.userName}</span>
+                                    {' '}{activity.action}{' '}
+                                    <span className="font-medium text-stone-900">{activity.targetName}</span>
+                                    {activity.details && (
+                                      <span className="text-stone-400 italic"> — {activity.details}</span>
+                                    )}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-1.5">
+                                    <p className="text-[10px] text-stone-400 flex items-center gap-1 font-medium">
+                                      <Clock className="w-3 h-3" />
+                                      {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                    <span className="text-[10px] text-stone-300">•</span>
+                                    <p className="text-[10px] text-stone-400 font-medium">
+                                      {new Date(activity.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-12 text-center border border-stone-200/60 border-dashed rounded-xl">
+                            <ActivityIcon className="w-8 h-8 text-stone-200 mx-auto mb-3" />
+                            <p className="text-stone-400 text-sm">No activity recorded for this user</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  users.map(user => {
+                    const userActivityCount = activities.filter(a => a.userId === user.id).length;
+                    return (
+                      <div 
+                        key={user.id} 
+                        onClick={() => setSelectedUserId(user.id)}
+                        className="p-5 rounded-xl border border-stone-200/80 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-medium text-sm shadow-sm">
+                              {user.name.charAt(0)}
+                            </div>
+                            <div>
+                              <h2 className="text-base font-semibold text-stone-900 tracking-tight group-hover:text-stone-700 transition-colors">{user.name}</h2>
+                              <p className="text-xs text-stone-500 font-medium">{user.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-stone-400 font-medium flex items-center gap-1">
+                              <ActivityIcon className="w-3.5 h-3.5" />
+                              {userActivityCount} activities
+                            </span>
+                            <button 
+                              className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors opacity-0 group-hover:opacity-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <MoreVertical className="w-4 h-4" />
                             </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </motion.div>
             )}
 
