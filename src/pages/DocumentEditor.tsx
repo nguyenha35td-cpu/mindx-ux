@@ -63,6 +63,15 @@ interface AgentPermission {
   permission: 'read' | 'edit';
 }
 
+interface Collaborator {
+  id: string;
+  name: string;
+  type: 'human' | 'agent';
+  isActive: boolean;
+  cursorPosition?: number; // Paragraph index where cursor is
+  color: string; // For cursor flag color
+}
+
 export default function DocumentEditor() {
   const navigate = useNavigate();
   const currentUserName = 'You';
@@ -74,6 +83,7 @@ export default function DocumentEditor() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showCollaboratorsSidebar, setShowCollaboratorsSidebar] = useState(false);
   
   // Modal states
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
@@ -87,6 +97,16 @@ export default function DocumentEditor() {
     { agentId: 'agent1', agentName: 'Claude Assistant', permission: 'edit' },
     { agentId: 'agent2', agentName: 'Research Bot', permission: 'read' }
   ]);
+  
+  // Collaborators state
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([
+    { id: 'user1', name: currentUserName, type: 'human', isActive: true, color: '#3b82f6' },
+    { id: 'agent1', name: 'Claude Assistant', type: 'agent', isActive: true, cursorPosition: 8, color: '#8b5cf6' },
+    { id: 'agent2', name: 'Research Bot', type: 'agent', isActive: true, cursorPosition: 15, color: '#ec4899' },
+    { id: 'agent3', name: 'Data Analyzer', type: 'agent', isActive: false, color: '#10b981' }
+  ]);
+  
+  const [hoveredParagraph, setHoveredParagraph] = useState<number | null>(null);
   
   // Share settings
   const [sharePermission, setSharePermission] = useState<'private' | 'view'>('private');
@@ -143,27 +163,135 @@ export default function DocumentEditor() {
     },
     {
       id: 'p5',
-      text: '### 2. Database Schema',
+      text: 'Each service is independently deployable and communicates through well-defined APIs. This architecture allows for better scalability and maintainability.',
       author: currentUserName,
       authorType: 'human'
     },
     {
       id: 'p6',
+      text: '### 2. Auth Service Details',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p7',
+      text: 'The Auth Service implements JWT-based authentication with refresh token rotation. It supports OAuth2.0 for third-party integrations including Google, GitHub, and Microsoft.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p8',
+      text: 'Security features include:\n- Rate limiting on login attempts\n- Multi-factor authentication support\n- Session management with Redis\n- Password hashing using bcrypt with salt rounds of 12',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p9',
+      text: '### 3. Data Service Architecture',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p10',
+      text: 'The Data Service handles all business logic and database operations. It implements the repository pattern for data access and uses TypeORM as the ORM layer.',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p11',
+      text: '#### 3.1 Database Schema',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p12',
       text: 'We will use PostgreSQL for the primary database. We will use Redis for caching to improve performance. The schema is designed to be highly normalized to ensure data integrity.',
       author: 'Claude 3.5 Sonnet',
       authorType: 'agent'
     },
     {
-      id: 'p7',
-      text: '### 3. Deployment',
+      id: 'p13',
+      text: 'Key tables include:\n- **users**: Store user profiles and credentials\n- **workspaces**: Organize user documents and projects\n- **documents**: Store document metadata and content\n- **permissions**: Handle access control and sharing',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p14',
+      text: '#### 3.2 Caching Strategy',
       author: currentUserName,
       authorType: 'human'
     },
     {
-      id: 'p8',
+      id: 'p15',
+      text: 'Redis is used for caching frequently accessed data with TTL-based expiration. Cache invalidation follows a write-through pattern to ensure consistency.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p16',
+      text: '### 4. Notification Service',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p17',
+      text: 'The Notification Service manages all outbound communications including emails, SMS, and push notifications. It uses a message queue (RabbitMQ) for reliable delivery.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p18',
+      text: 'Notification templates are stored in the database and support internationalization. The service tracks delivery status and provides retry mechanisms for failed notifications.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p19',
+      text: '### 5. API Gateway',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p20',
+      text: 'An API Gateway sits in front of all microservices to handle routing, rate limiting, and authentication. It uses Kong for its robust plugin ecosystem.',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p21',
+      text: '### 6. Deployment',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p22',
       text: 'The application will be containerized using Docker and deployed to a Kubernetes cluster. Maya also wants staging approval checkpoints called out before the release section.',
       author: externalCollaboratorName,
       authorType: 'human'
+    },
+    {
+      id: 'p23',
+      text: '#### 6.1 CI/CD Pipeline',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p24',
+      text: 'The CI/CD pipeline uses GitHub Actions for automated testing and deployment:\n1. Code push triggers automated tests\n2. Successful tests build Docker images\n3. Images are pushed to container registry\n4. Staging environment is automatically updated\n5. After approval, production deployment is triggered',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p25',
+      text: '### 7. Monitoring and Observability',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p26',
+      text: 'We use Prometheus for metrics collection, Grafana for visualization, and ELK stack for log aggregation. Distributed tracing is implemented using Jaeger.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
     }
   ]);
 
@@ -364,6 +492,19 @@ export default function DocumentEditor() {
     }
   };
 
+  const scrollToCollaborator = (collaboratorId: string) => {
+    const collaborator = collaborators.find(c => c.id === collaboratorId);
+    if (collaborator && collaborator.cursorPosition !== undefined) {
+      const paragraphElements = editorRef.current?.querySelectorAll('.paragraph-item');
+      if (paragraphElements && paragraphElements[collaborator.cursorPosition]) {
+        paragraphElements[collaborator.cursorPosition].scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }
+  };
+
   const displayedParagraphs = selectedVersion 
     ? versionHistory.find(v => v.id === selectedVersion)?.paragraphs || paragraphs
     : paragraphs;
@@ -398,8 +539,16 @@ export default function DocumentEditor() {
             Last edited 2 mins ago by Claude
           </div>
           
-          <div className="flex -space-x-2 mr-4">
-            <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-[10px] text-stone-600 border border-white z-10" title="Claude 3.5 Sonnet">
+          <button 
+            onClick={() => {
+              setShowCollaboratorsSidebar(!showCollaboratorsSidebar);
+              setShowCommentsSidebar(false);
+              setShowVersionHistory(false);
+            }}
+            className="flex -space-x-2 mr-4 hover:opacity-80 transition-opacity cursor-pointer"
+            title="查看协作者"
+          >
+            <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-[10px] text-stone-600 border border-white z-10">
               <Bot className="w-3 h-3" />
             </div>
             <div
@@ -408,7 +557,7 @@ export default function DocumentEditor() {
             >
               {(isChatLog ? externalCollaboratorName : currentUserName).charAt(0)}
             </div>
-          </div>
+          </button>
 
           {/* Share Button with Dropdown */}
           <div className="relative share-menu-container">
@@ -554,7 +703,9 @@ export default function DocumentEditor() {
       </header>
 
       {/* Editor & Sidebar */}
-      <div className="flex-1 flex overflow-hidden relative" onMouseUp={handleMouseUp}>
+      <div className={`flex-1 flex overflow-hidden relative transition-all duration-300 ${
+        showCollaboratorsSidebar ? 'mr-80' : 'mr-0'
+      }`} onMouseUp={handleMouseUp}>
         {/* Floating Selection Menu */}
         {selectionMenu && !isChatLog && (
           <motion.div 
@@ -642,32 +793,74 @@ export default function DocumentEditor() {
                 </div>
               </div>
             ) : (
-              displayedParagraphs.map((p) => (
-                <div key={p.id} className="group relative pl-10">
-                  {/* Author Indicator */}
-                  <div className="absolute left-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border shadow-sm ${
-                      p.authorType === 'agent' 
-                        ? 'bg-stone-50 text-stone-500 border-stone-200' 
-                        : 'bg-stone-100 text-stone-700 border-stone-300'
-                    }`} title={`Written by ${p.author}`}>
-                      {p.authorType === 'agent' ? <Bot className="w-3 h-3" /> : p.author.charAt(0)}
+              displayedParagraphs.map((p, index) => {
+                // Find collaborators with cursor at this position
+                const collaboratorsHere = collaborators.filter(
+                  c => c.isActive && c.cursorPosition === index && c.type === 'agent'
+                );
+                
+                return (
+                  <div 
+                    key={p.id} 
+                    className="group relative pl-10 paragraph-item"
+                    onMouseEnter={() => setHoveredParagraph(index)}
+                    onMouseLeave={() => setHoveredParagraph(null)}
+                  >
+                    {/* Author Indicator */}
+                    <div className="absolute left-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border shadow-sm ${
+                        p.authorType === 'agent' 
+                          ? 'bg-stone-50 text-stone-500 border-stone-200' 
+                          : 'bg-stone-100 text-stone-700 border-stone-300'
+                      }`} title={`Written by ${p.author}`}>
+                        {p.authorType === 'agent' ? <Bot className="w-3 h-3" /> : p.author.charAt(0)}
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="w-full bg-transparent border-none focus:outline-none text-stone-800 font-sans text-lg leading-relaxed whitespace-pre-wrap relative"
+                      contentEditable
+                      suppressContentEditableWarning
+                      onInput={(e) => {
+                        const newText = e.currentTarget.innerText;
+                        setParagraphs(prev => prev.map(item => item.id === p.id ? { ...item, text: newText } : item));
+                      }}
+                    >
+                      {highlightText(p.text)}
+                      
+                      {/* Cursor and Flag */}
+                      {collaboratorsHere.length > 0 && (
+                        <div className="absolute left-1/3 top-0 bottom-0 pointer-events-none">
+                          {collaboratorsHere.map((collaborator, idx) => (
+                            <div key={collaborator.id} style={{ marginLeft: `${idx * 24}px` }}>
+                              {/* Cursor Line - always visible */}
+                              <motion.div
+                                initial={{ opacity: 1 }}
+                                animate={{ opacity: [1, 0.3, 1] }}
+                                transition={{ duration: 1, repeat: Infinity }}
+                                className="absolute top-0 w-0.5 h-6"
+                                style={{ backgroundColor: collaborator.color }}
+                              />
+                              {/* Flag - only show on hover */}
+                              {hoveredParagraph === index && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="absolute -top-8 -left-2 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-white shadow-lg whitespace-nowrap"
+                                  style={{ backgroundColor: collaborator.color }}
+                                >
+                                  <Bot className="w-2.5 h-2.5" />
+                                  {collaborator.name}
+                                </motion.div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div 
-                    className="w-full bg-transparent border-none focus:outline-none text-stone-800 font-sans text-lg leading-relaxed whitespace-pre-wrap"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={(e) => {
-                      const newText = e.currentTarget.innerText;
-                      setParagraphs(prev => prev.map(item => item.id === p.id ? { ...item, text: newText } : item));
-                    }}
-                  >
-                    {highlightText(p.text)}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </main>
@@ -939,6 +1132,95 @@ export default function DocumentEditor() {
                   )}
                 </motion.div>
               ))}
+            </div>
+          </aside>
+        )}
+
+        {/* Collaborators Sidebar */}
+        {!isChatLog && showCollaboratorsSidebar && (
+          <aside className="fixed right-0 top-12 h-[calc(100vh-3rem)] w-80 border-l border-stone-200 bg-stone-50 flex flex-col z-30 shadow-lg">
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-white">
+              <h2 className="text-sm font-medium flex items-center gap-2 text-stone-900">
+                <Users className="w-4 h-4 text-stone-500" />
+                正在协作
+              </h2>
+              <button
+                onClick={() => setShowCollaboratorsSidebar(false)}
+                className="p-1 rounded hover:bg-stone-100 text-stone-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Collaborators List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {collaborators.filter(c => c.isActive).map((collaborator) => (
+                <motion.div
+                  key={collaborator.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  onClick={() => scrollToCollaborator(collaborator.id)}
+                  className={`p-3 rounded-lg border bg-white cursor-pointer transition-all hover:border-stone-300 ${
+                    collaborator.isActive ? 'shadow-sm' : 'opacity-60'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    {collaborator.type === 'agent' ? (
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
+                        style={{ backgroundColor: collaborator.color }}
+                      >
+                        <Bot className="w-5 h-5" />
+                      </div>
+                    ) : (
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg"
+                        style={{ backgroundColor: collaborator.color }}
+                      >
+                        {collaborator.name.charAt(0)}
+                      </div>
+                    )}
+                    
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-stone-900 truncate">
+                          {collaborator.name}
+                        </span>
+                        <span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      </div>
+                      {collaborator.cursorPosition !== undefined && (
+                        <div className="text-xs text-stone-500 mt-0.5 flex items-center gap-1">
+                          <span className="inline-block w-1 h-3 bg-stone-400 animate-pulse" />
+                          正在编辑
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Jump to cursor button */}
+                    {collaborator.cursorPosition !== undefined && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollToCollaborator(collaborator.id);
+                        }}
+                        className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-600 transition-colors"
+                        title="跳转到光标位置"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Active Status Footer */}
+            <div className="p-4 border-t border-stone-200 bg-white">
+              <div className="text-xs text-stone-500 text-center">
+                {collaborators.filter(c => c.isActive).length} 人正在协作
+              </div>
             </div>
           </aside>
         )}
