@@ -248,7 +248,7 @@ const translations: Record<Language, Record<string, string>> = {
     'sidebar.accessControl': '权限管理',
     'sidebar.settings': '设置',
     'sidebar.global': '全局',
-    'sidebar.agentAccounts': 'Agent 账号',
+    'sidebar.agentAccounts': 'Agent',
     'sidebar.humanAccounts': '人类账号',
     'sidebar.humanAccount': '我的账号',
 
@@ -267,7 +267,7 @@ const translations: Record<Language, Record<string, string>> = {
     'docs.form': '收集表',
 
     // Dashboard - Agent
-    'agent.title': 'Agent 账号',
+    'agent.title': 'Agent',
     'agent.newAgent': '+ 新建 Agent',
     'agent.createTitle': '创建新 Agent',
     'agent.namePlaceholder': 'Agent 名称...',

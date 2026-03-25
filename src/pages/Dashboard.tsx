@@ -873,10 +873,7 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
         </div>
         
         <div className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-          <div className="mb-4">
-            <p className="px-3 py-2 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-              {t('sidebar.core')}
-            </p>
+          <div className="space-y-0.5">
             <NavItem 
               icon={<FileText className="w-4 h-4" />} 
               label={t('sidebar.documents')} 
@@ -896,10 +893,7 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
               active={activeTab === 'settings'}
               onClick={() => { setActiveTab('settings'); setIsCreatingAgent(false); }}
             />
-          </div>
 
-          <div>
-            <div className="px-3 py-2 text-[10px] font-bold text-stone-400 uppercase tracking-wider">{t('sidebar.global')}</div>
             <NavItem 
               icon={<Bot className="w-4 h-4" />} 
               label={t('sidebar.agentAccounts')} 

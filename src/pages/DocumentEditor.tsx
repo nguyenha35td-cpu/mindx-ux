@@ -15,7 +15,14 @@ import {
   X,
   Send,
   Copy,
-  Globe
+  Globe,
+  Link2,
+  FilePlus2,
+  Tag,
+  Shield,
+  Users,
+  ChevronRight,
+  Plus
 } from 'lucide-react';
 
 interface Paragraph {
@@ -56,6 +63,37 @@ interface Collaborator {
   isActive: boolean;
   cursorPosition?: number; // Paragraph index where cursor is
   color: string; // For cursor flag color
+}
+
+type CommentThreadType = 'comment' | 'modify';
+
+interface CommentMessage {
+  id: string;
+  author: string;
+  authorType: 'human' | 'agent';
+  text: string;
+  time: string;
+}
+
+interface CommentThread {
+  id: number;
+  highlight: string;
+  type: CommentThreadType;
+  resolved: boolean;
+  createdAtLabel: string;
+  messages: CommentMessage[];
+  draftText: string;
+  isDraft: boolean;
+  isReplying: boolean;
+  replyDraftText: string;
+  isAwaitingReply: boolean;
+}
+
+function buildAgentReply(type: CommentThreadType, highlight: string, userText: string): string[] {
+  if (type === 'modify') {
+    return [`I've reviewed the suggestion about "${highlight}". ${userText ? `Regarding your note: "${userText}" — ` : ''}I'll update the document accordingly.`];
+  }
+  return [`Thanks for the comment on "${highlight}". ${userText ? `You mentioned: "${userText}" — ` : ''}I'll take this into consideration.`];
 }
 
 export default function DocumentEditor() {
@@ -434,7 +472,7 @@ export default function DocumentEditor() {
     };
 
     setComments(prev => [newComment, ...prev]);
-    setSelectedCommentId(newComment.id);
+    setActiveCommentId(newComment.id);
     setSelectionMenu(null);
 
     // Clear selection
@@ -442,13 +480,13 @@ export default function DocumentEditor() {
   };
 
   useEffect(() => {
-    if (selectedCommentId) {
-      const card = commentRefs.current.get(selectedCommentId);
+    if (activeCommentId) {
+      const card = commentRefs.current.get(activeCommentId);
       if (card) {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  }, [selectedCommentId, comments]);
+  }, [activeCommentId, comments]);
 
   useEffect(() => {
     return () => {
@@ -468,7 +506,7 @@ export default function DocumentEditor() {
     setComments(prev =>
       prev.filter(comment => !(comment.id === commentId && comment.isDraft))
     );
-    setSelectedCommentId(prev => (prev === commentId ? null : prev));
+    setActiveCommentId(prev => (prev === commentId ? null : prev));
   };
 
   const markCommentResolved = (commentId: number) => {
@@ -489,7 +527,7 @@ export default function DocumentEditor() {
           : { ...comment, isReplying: false }
       )
     );
-    setSelectedCommentId(commentId);
+    setActiveCommentId(commentId);
   };
 
   const updateReplyDraftText = (commentId: number, replyDraftText: string) => {
@@ -544,7 +582,7 @@ export default function DocumentEditor() {
           : item
       )
     );
-    setSelectedCommentId(commentId);
+    setActiveCommentId(commentId);
 
     const replyTimeoutId = window.setTimeout(() => {
       setComments(prev =>
@@ -605,10 +643,10 @@ export default function DocumentEditor() {
               newResult.push(
                 <span 
                   key={`${comment.id}-${i}`}
-                  className={`comment-highlight ${selectedCommentId === comment.id ? 'active' : ''}`}
+                  className={`comment-highlight ${activeCommentId === comment.id ? 'active' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedCommentId(comment.id);
+                    setActiveCommentId(comment.id);
                   }}
                 >
                   {comment.highlight}
@@ -1122,9 +1160,9 @@ export default function DocumentEditor() {
                 }}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                onClick={() => setSelectedCommentId(comment.id)}
+                onClick={() => setActiveCommentId(comment.id)}
                 className={`p-4 rounded-xl border bg-white shadow-sm cursor-pointer transition-all comment-card ${
-                  selectedCommentId === comment.id || comment.isDraft
+                  activeCommentId === comment.id || comment.isDraft
                     ? 'active border-stone-400 ring-2 ring-stone-900/5' 
                     : 'border-stone-200'
                 } ${
@@ -1182,7 +1220,7 @@ export default function DocumentEditor() {
                   {comment.isDraft ? (
                     <div className="px-1">
                       <textarea
-                        autoFocus={selectedCommentId === comment.id}
+                        autoFocus={activeCommentId === comment.id}
                         value={comment.draftText}
                         placeholder="Write a comment..."
                         className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-sm focus:outline-none focus:border-stone-300 transition-colors resize-none"
@@ -1307,7 +1345,7 @@ export default function DocumentEditor() {
                       comment.isReplying ? (
                         <div className="space-y-2">
                           <textarea
-                            autoFocus={selectedCommentId === comment.id}
+                            autoFocus={activeCommentId === comment.id}
                             value={comment.replyDraftText}
                             placeholder="Reply in thread..."
                             className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-sm focus:outline-none focus:border-stone-300 transition-colors resize-none"
