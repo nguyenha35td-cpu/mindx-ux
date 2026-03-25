@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import OnboardingWizard from '../components/OnboardingWizard';
+import { useLanguage, LanguageSwitcher } from '../i18n/LanguageContext';
 import { 
   Copy, 
   Check, 
@@ -458,6 +459,7 @@ export default function Dashboard() {
   const [isLabelOwnerFilterOpen, setIsLabelOwnerFilterOpen] = useState(false);
   const [labelFilterWorkspace, setLabelFilterWorkspace] = useState<string>('all');
   const [isLabelWorkspaceFilterOpen, setIsLabelWorkspaceFilterOpen] = useState(false);
+  const { t } = useLanguage();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -632,7 +634,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
         <div className="flex-1 px-3 space-y-0.5 overflow-y-auto">
           <div className="mb-4">
             <div className="px-3 py-2 flex items-center justify-between group relative">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Workspace</span>
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">{t('sidebar.workspace')}</span>
               <button 
                 onClick={() => setIsWorkspaceOpen(!isWorkspaceOpen)}
                 className="flex items-center gap-1 hover:bg-stone-200/50 px-1.5 py-0.5 rounded transition-colors"
@@ -662,7 +664,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                   ))}
                   <div className="border-t border-stone-100 mt-1 pt-1">
                     <button className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-stone-500 hover:text-stone-800 hover:bg-stone-50 transition-colors">
-                      <Plus className="w-3.5 h-3.5" /> New Workspace
+                      <Plus className="w-3.5 h-3.5" /> {t('sidebar.newWorkspace')}
                     </button>
                   </div>
                 </div>
@@ -670,41 +672,41 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
             </div>
             <NavItem 
               icon={<FileText className="w-4 h-4" />} 
-              label="Documents" 
+              label={t('sidebar.documents')} 
               active={activeTab === 'documents'} 
               onClick={() => { setActiveTab('documents'); setIsCreatingAgent(false); }}
             />
             <NavItem 
               icon={<ActivityIcon className="w-4 h-4" />} 
-              label="Activity Feed" 
+              label={t('sidebar.activityFeed')} 
               active={activeTab === 'activity'} 
               onClick={() => { setActiveTab('activity'); setIsCreatingAgent(false); }}
             />
             <NavItem 
               icon={<Users className="w-4 h-4" />} 
-              label="Access Control" 
+              label={t('sidebar.accessControl')} 
               active={activeTab === 'members'} 
               onClick={() => { setActiveTab('members'); setIsCreatingAgent(false); }}
             />
             <NavItem 
               icon={<Settings className="w-4 h-4" />} 
-              label="Settings" 
+              label={t('sidebar.settings')} 
               active={activeTab === 'settings'}
               onClick={() => { setActiveTab('settings'); setIsCreatingAgent(false); }}
             />
           </div>
 
           <div>
-            <div className="px-3 py-2 text-[10px] font-bold text-stone-400 uppercase tracking-wider">Global</div>
+            <div className="px-3 py-2 text-[10px] font-bold text-stone-400 uppercase tracking-wider">{t('sidebar.global')}</div>
             <NavItem 
               icon={<Bot className="w-4 h-4" />} 
-              label="Agent Accounts" 
+              label={t('sidebar.agentAccounts')} 
               active={activeTab === 'agents'} 
               onClick={() => { setActiveTab('agents'); setIsCreatingAgent(false); setSelectedAgentId(null); }}
             />
             <NavItem 
               icon={<User className="w-4 h-4" />} 
-              label="Human Accounts" 
+              label={t('sidebar.humanAccounts')} 
               active={activeTab === 'users'} 
               onClick={() => { setActiveTab('users'); setIsCreatingAgent(false); setSelectedUserId(null); }}
             />
@@ -723,7 +725,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
               H
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium truncate">Human Account</p>
+              <p className="text-sm font-medium truncate">{t('sidebar.humanAccount')}</p>
             </div>
             <LogOut className="w-4 h-4 text-stone-400" />
           </div>
@@ -735,12 +737,12 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
         {/* Header */}
         <header className="h-14 flex items-center justify-between px-8 border-b border-stone-200">
           <h1 className="text-lg font-medium">
-            {activeTab === 'documents' && 'Documents'}
-            {activeTab === 'activity' && 'Activity Feed'}
-            {activeTab === 'agents' && 'Agent Accounts'}
-            {activeTab === 'users' && 'Human Accounts'}
-            {activeTab === 'members' && 'Access Control'}
-            {activeTab === 'settings' && 'Settings'}
+            {activeTab === 'documents' && t('docs.title')}
+            {activeTab === 'activity' && t('activity.title')}
+            {activeTab === 'agents' && t('agent.title')}
+            {activeTab === 'users' && t('human.title')}
+            {activeTab === 'members' && t('access.title')}
+            {activeTab === 'settings' && t('settings.title')}
             {activeTab === 'labels' && 'Labels'}
           </h1>
           <div className="flex items-center gap-4">
@@ -748,7 +750,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
               <input 
                 type="text" 
-                placeholder="Search..." 
+                placeholder={t('common.search')} 
                 className="pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-300 focus:bg-white transition-colors w-64"
               />
             </div>
@@ -779,10 +781,10 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                 className="flex items-center gap-1.5 bg-stone-900 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-stone-800 transition-colors"
               >
                 <Plus className="w-4 h-4" /> 
-                {activeTab === 'documents' && 'New'}
-                {activeTab === 'agents' && 'New Agent'}
-                {activeTab === 'members' && 'Add Member'}
-                {activeTab === 'users' && 'New Human'}
+                {activeTab === 'documents' && t('docs.newDoc')}
+                {activeTab === 'agents' && t('agent.newAgent')}
+                {activeTab === 'members' && t('access.title')}
+                {activeTab === 'users' && t('human.newHuman')}
               </button>
 
               {activeTab === 'documents' && isNewDocMenuOpen && (
@@ -1088,13 +1090,13 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                       onClick={() => setIsCreatingAgent(false)} 
                       className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 transition-colors text-sm font-medium"
                     >
-                      <ArrowLeft className="w-4 h-4" /> Back to Agents
+                      <ArrowLeft className="w-4 h-4" /> {t('agent.backToAgents')}
                     </button>
                     <div className="bg-white border border-stone-200/80 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-8">
                       <div className="w-12 h-12 rounded-full bg-stone-50 border border-stone-200/60 flex items-center justify-center text-stone-700 shadow-sm mb-6">
                         <Bot className="w-6 h-6" />
                       </div>
-                      <h2 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">Create New Agent</h2>
+                      <h2 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">{t('agent.createTitle')}</h2>
                       <p className="text-sm text-stone-500 mb-8">Generate a new agent token to integrate your AI assistant with the system.</p>
                       <form onSubmit={handleCreateAgent} className="space-y-6">
                         <div>
@@ -1114,14 +1116,14 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                             onClick={() => setIsCreatingAgent(false)} 
                             className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                           <button 
                             type="submit" 
                             disabled={!newAgentName.trim()} 
                             className="px-4 py-2 bg-stone-900 text-white text-sm font-medium rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                           >
-                            Create Agent
+                            {t('common.create')} Agent
                           </button>
                         </div>
                       </form>
@@ -1139,7 +1141,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                         onClick={() => setSelectedAgentId(null)} 
                         className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 transition-colors text-sm font-medium"
                       >
-                        <ArrowLeft className="w-4 h-4" /> Back to Agents
+                        <ArrowLeft className="w-4 h-4" /> {t('agent.backToAgents')}
                       </button>
 
                       {/* Agent Detail Card */}
@@ -1151,7 +1153,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                             </div>
                             <div>
                               <h2 className="text-lg font-semibold text-stone-900 tracking-tight">{agent.name}</h2>
-                              <p className="text-xs text-stone-500 font-medium">Global Agent Account</p>
+                              <p className="text-xs text-stone-500 font-medium">{t('agent.globalAccount')}</p>
                             </div>
                           </div>
                           <div className="relative">
@@ -1199,7 +1201,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                         
                         <div className="grid md:grid-cols-2 gap-6">
                           <div>
-                            <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Agent Token</h3>
+                            <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">{t('agent.token')}</h3>
                             <div className="relative">
                               <div className="bg-stone-50/80 border border-stone-200/60 rounded-lg p-3.5 text-sm font-medium text-stone-700 break-all pr-12 tracking-wide">
                                 {agent.token}
@@ -1214,7 +1216,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                           </div>
                           <div>
                             <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                              <Wand2 className="w-3.5 h-3.5" /> Integration Prompt
+                              <Wand2 className="w-3.5 h-3.5" /> {t('agent.integrationPrompt')}
                             </h3>
                             <div className="relative group">
                               <div className="bg-stone-50/80 border border-stone-200/60 rounded-lg p-3.5 text-sm text-stone-600 whitespace-pre-wrap h-28 overflow-y-auto leading-relaxed">
@@ -1235,7 +1237,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                       <div>
                         <h3 className="text-sm font-semibold text-stone-900 mb-4 flex items-center gap-2">
                           <ActivityIcon className="w-4 h-4 text-stone-500" />
-                          Recent Activity
+                          {t('agent.recentActivity')}
                         </h3>
                         {agentActivities.length > 0 ? (
                           <div className="space-y-1">
@@ -1277,7 +1279,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                         ) : (
                           <div className="py-12 text-center border border-stone-200/60 border-dashed rounded-xl">
                             <ActivityIcon className="w-8 h-8 text-stone-200 mx-auto mb-3" />
-                            <p className="text-stone-400 text-sm">No activity recorded for this agent</p>
+                            <p className="text-stone-400 text-sm">{t('agent.noActivity')}</p>
                           </div>
                         )}
                       </div>
@@ -1368,6 +1370,22 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                               )}
                             </div>
                             </div>
+                            <div>
+                              <h2 className="text-base font-semibold text-stone-900 tracking-tight group-hover:text-stone-700 transition-colors">{agent.name}</h2>
+                              <p className="text-xs text-stone-500 font-medium">{t('agent.globalAccount')}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-stone-400 font-medium flex items-center gap-1">
+                              <ActivityIcon className="w-3.5 h-3.5" />
+                              {agentActivityCount} {t('agent.activities')}
+                            </span>
+                            <button 
+                              className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors opacity-0 group-hover:opacity-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
 
@@ -1428,7 +1446,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                         onClick={() => setSelectedUserId(null)} 
                         className="flex items-center gap-2 text-stone-500 hover:text-stone-900 mb-6 transition-colors text-sm font-medium"
                       >
-                        <ArrowLeft className="w-4 h-4" /> Back to Humans
+                        <ArrowLeft className="w-4 h-4" /> {t('human.backToHumans')}
                       </button>
 
                       {/* User Detail Card */}
@@ -1453,7 +1471,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                       <div>
                         <h3 className="text-sm font-semibold text-stone-900 mb-4 flex items-center gap-2">
                           <ActivityIcon className="w-4 h-4 text-stone-500" />
-                          Recent Activity
+                          {t('agent.recentActivity')}
                         </h3>
                         {userActivities.length > 0 ? (
                           <div className="space-y-1">
@@ -1495,7 +1513,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                         ) : (
                           <div className="py-12 text-center border border-stone-200/60 border-dashed rounded-xl">
                             <ActivityIcon className="w-8 h-8 text-stone-200 mx-auto mb-3" />
-                            <p className="text-stone-400 text-sm">No activity recorded for this user</p>
+                            <p className="text-stone-400 text-sm">{t('human.noActivity')}</p>
                           </div>
                         )}
                       </div>
@@ -1523,7 +1541,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                           <div className="flex items-center gap-3">
                             <span className="text-xs text-stone-400 font-medium flex items-center gap-1">
                               <ActivityIcon className="w-3.5 h-3.5" />
-                              {userActivityCount} activities
+                              {userActivityCount} {t('agent.activities')}
                             </span>
                             <button 
                               className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 transition-colors opacity-0 group-hover:opacity-100"
@@ -1549,9 +1567,9 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                   <table className="w-full text-left text-sm">
                     <thead className="bg-stone-50/50 text-stone-500 border-b border-stone-200/80">
                       <tr>
-                        <th className="px-6 py-3 font-medium">Member</th>
-                        <th className="px-6 py-3 font-medium">Type</th>
-                        <th className="px-6 py-3 font-medium">Role</th>
+                        <th className="px-6 py-3 font-medium">{t('access.member')}</th>
+                        <th className="px-6 py-3 font-medium">{t('access.memberType')}</th>
+                        <th className="px-6 py-3 font-medium">{t('access.role')}</th>
                         <th className="px-6 py-3 font-medium text-right"></th>
                       </tr>
                     </thead>
@@ -1610,12 +1628,12 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
               >
                 <div className="bg-white border border-stone-200/80 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-8 space-y-8">
                   <div>
-                    <h2 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">Workspace Settings</h2>
+                    <h2 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">{t('settings.title')}</h2>
                     <p className="text-sm text-stone-500">Manage your workspace configuration and preferences.</p>
                   </div>
                   
                   <div className="space-y-4">
-                    <label className="block text-sm font-medium text-stone-700">Workspace Name</label>
+                    <label className="block text-sm font-medium text-stone-700">{t('settings.workspaceName')}</label>
                     <input 
                       type="text" 
                       defaultValue={activeWorkspace?.name}
@@ -1624,9 +1642,9 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
                   </div>
 
                   <div className="pt-6 border-t border-stone-100">
-                    <h3 className="text-sm font-semibold text-stone-900 mb-4">Danger Zone</h3>
+                    <h3 className="text-sm font-semibold text-stone-900 mb-4">{t('settings.dangerZone')}</h3>
                     <button className="px-4 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors">
-                      Delete Workspace
+                      {t('settings.deleteWorkspace')}
                     </button>
                   </div>
                 </div>

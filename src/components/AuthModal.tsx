@@ -9,6 +9,7 @@ import {
   Sparkles,
   KeyRound
 } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ const MOCK_USERS_KEY = 'mindx_users';
 type Step = 'email' | 'verify';
 
 export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
+  const { t, lang } = useLanguage();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -39,7 +41,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
 
   const handleSendCode = async () => {
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address');
+      setError(t('auth.invalidEmail'));
       return;
     }
 
@@ -54,13 +56,12 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
 
   const handleVerify = () => {
     if (verificationCode !== MOCK_VERIFICATION_CODE) {
-      setError('Invalid code. Please enter 123456');
+      setError(t('auth.invalidCode'));
       return;
     }
 
     setError('');
 
-    // Save user to local storage
     const stored = localStorage.getItem(MOCK_USERS_KEY);
     const users: string[] = stored ? JSON.parse(stored) : [];
     if (!users.includes(email)) {
@@ -79,10 +80,8 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={onClose} />
       
-      {/* Modal */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -90,7 +89,6 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
         transition={{ duration: 0.2 }}
         className="relative w-full max-w-md bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden"
       >
-        {/* Header */}
         <div className="px-8 pt-8 pb-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2.5">
@@ -108,17 +106,16 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
           </div>
 
           <h2 className="text-xl font-semibold text-stone-900 tracking-tight mb-1">
-            {step === 'email' ? 'Sign in to MindX' : 'Check your email'}
+            {step === 'email' ? t('auth.signInTitle') : t('auth.checkEmail')}
           </h2>
           <p className="text-sm text-stone-500">
             {step === 'email' 
-              ? 'Enter your email to receive a verification code' 
-              : <>Code sent to <span className="font-medium text-stone-700">{email}</span></>
+              ? t('auth.emailPrompt')
+              : <>{t('auth.codeSentTo')} <span className="font-medium text-stone-700">{email}</span></>
             }
           </p>
         </div>
 
-        {/* Progress */}
         <div className="px-8 mb-6">
           <div className="flex gap-2">
             <div className="h-1 flex-1 rounded-full bg-stone-900 transition-all" />
@@ -126,9 +123,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
           </div>
         </div>
 
-        {/* Content */}
         <div className="px-8 pb-8">
-          {/* Error */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -142,7 +137,6 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
             )}
           </AnimatePresence>
 
-          {/* Step 1: Email */}
           {step === 'email' && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -151,7 +145,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
             >
               <div>
                 <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">
-                  Email Address
+                  {t('auth.emailLabel')}
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -159,7 +153,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
                     type="email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                    placeholder="you@example.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 focus:bg-white transition-all placeholder:text-stone-400 placeholder:font-normal"
                     autoFocus
                     onKeyDown={(e) => e.key === 'Enter' && handleSendCode()}
@@ -175,11 +169,11 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
                 {isSending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending code...
+                    {t('auth.sendingCode')}
                   </>
                 ) : (
                   <>
-                    Continue
+                    {t('auth.continue')}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -187,7 +181,6 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
             </motion.div>
           )}
 
-          {/* Step 2: Verification Code */}
           {step === 'verify' && (
             <motion.div
               initial={{ opacity: 0, x: 10 }}
@@ -196,7 +189,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
             >
               <div>
                 <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">
-                  Verification Code
+                  {t('auth.codeLabel')}
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -209,7 +202,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
                       setVerificationCode(val);
                       setError('');
                     }}
-                    placeholder="Enter 6-digit code"
+                    placeholder={t('auth.codePlaceholder')}
                     className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 focus:bg-white transition-all placeholder:text-stone-400 placeholder:font-normal tracking-widest text-center"
                     autoFocus
                     maxLength={6}
@@ -218,14 +211,17 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
                 </div>
                 <div className="flex items-center justify-between mt-2.5">
                   <p className="text-xs text-stone-400">
-                    Demo code: <span className="font-mono font-medium text-stone-500">123456</span>
+                    {t('auth.demoCode')} <span className="font-mono font-medium text-stone-500">123456</span>
                   </p>
                   <button
                     onClick={handleResend}
                     disabled={countdown > 0}
                     className="text-xs font-semibold text-stone-600 hover:text-stone-900 disabled:text-stone-300 transition-colors"
                   >
-                    {countdown > 0 ? `Resend in ${countdown}s` : 'Resend code'}
+                    {countdown > 0 
+                      ? (lang === 'zh' ? `${countdown} ${t('auth.resendIn')}` : `${t('auth.resendIn')} ${countdown}s`)
+                      : t('auth.resendCode')
+                    }
                   </button>
                 </div>
               </div>
@@ -235,7 +231,7 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
                   onClick={() => { setStep('email'); setVerificationCode(''); setError(''); }}
                   className="px-5 py-3 bg-stone-100 text-stone-600 rounded-xl text-sm font-semibold hover:bg-stone-200 transition-colors"
                 >
-                  Back
+                  {t('common.back')}
                 </button>
                 <button
                   onClick={handleVerify}
@@ -243,15 +239,14 @@ export default function AuthModal({ onClose, onAuth }: AuthModalProps) {
                   className="flex-1 py-3 bg-stone-900 text-white rounded-xl text-sm font-semibold hover:bg-stone-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Verify & Sign In
+                  {t('auth.verify')}
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* Footer */}
           <p className="text-center text-[11px] text-stone-400 mt-6">
-            By continuing, you agree to MindX's Terms of Service and Privacy Policy.
+            {t('auth.terms')}
           </p>
         </div>
       </motion.div>

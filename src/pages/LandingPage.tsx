@@ -17,6 +17,7 @@ import {
   Layers
 } from 'lucide-react';
 import AuthModal from '../components/AuthModal';
+import { useLanguage, LanguageSwitcher } from '../i18n/LanguageContext';
 
 const INTEGRATIONS = [
   { name: 'Claude', icon: <Bot className="w-4 h-4" />, color: 'bg-stone-100' },
@@ -29,15 +30,30 @@ const INTEGRATIONS = [
 export default function LandingPage() {
   const [showAuth, setShowAuth] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleAuth = (email: string) => {
     setShowAuth(false);
     navigate('/dashboard?onboarding=true');
   };
 
+  const steps = [
+    { icon: <Users className="w-5 h-5" />, title: t('landing.step1Title'), desc: t('landing.step1Desc') },
+    { icon: <Bot className="w-5 h-5" />, title: t('landing.step2Title'), desc: t('landing.step2Desc') },
+    { icon: <Terminal className="w-5 h-5" />, title: t('landing.step3Title'), desc: t('landing.step3Desc') },
+    { icon: <Sparkles className="w-5 h-5" />, title: t('landing.step4Title'), desc: t('landing.step4Desc') },
+  ];
+
+  const features = [
+    { icon: <FileText className="w-5 h-5 text-stone-600" />, title: t('landing.feat1Title'), desc: t('landing.feat1Desc') },
+    { icon: <Database className="w-5 h-5 text-stone-600" />, title: t('landing.feat2Title'), desc: t('landing.feat2Desc') },
+    { icon: <Bot className="w-5 h-5 text-stone-600" />, title: t('landing.feat3Title'), desc: t('landing.feat3Desc') },
+    { icon: <Users className="w-5 h-5 text-stone-600" />, title: t('landing.feat4Title'), desc: t('landing.feat4Desc') },
+    { icon: <RefreshCw className="w-5 h-5 text-stone-600" />, title: t('landing.feat5Title'), desc: t('landing.feat5Desc') },
+  ];
+
   return (
     <div className="min-h-screen bg-white text-stone-800 font-sans selection:bg-stone-200">
-      {/* Auth Modal */}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuth={handleAuth} />}
 
       {/* Navigation */}
@@ -49,21 +65,22 @@ export default function LandingPage() {
             </div>
             <span className="text-xl font-semibold tracking-tight">MindX</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <a href="#workflow" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors hidden md:block">
-              How it Works
+              {t('nav.howItWorks')}
             </a>
+            <LanguageSwitcher />
             <button 
               onClick={() => setShowAuth(true)}
               className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors"
             >
-              Sign In
+              {t('nav.signIn')}
             </button>
             <button
               onClick={() => setShowAuth(true)}
               className="text-sm font-medium bg-stone-900 text-white px-4 py-2 rounded-md hover:bg-stone-800 transition-colors"
             >
-              Get Started
+              {t('nav.getStarted')}
             </button>
           </div>
         </div>
@@ -78,7 +95,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="flex flex-wrap items-center justify-center gap-3 mb-12"
           >
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mr-2">Integrations</span>
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mr-2">{t('landing.integrations')}</span>
             {INTEGRATIONS.map((item) => (
               <div 
                 key={item.name}
@@ -98,9 +115,9 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-5xl md:text-6xl font-bold tracking-tight mb-6 text-stone-900"
           >
-            The Workspace for <br className="hidden md:block" />
+            {t('landing.heroTitle1')} <br className="hidden md:block" />
             <span className="text-stone-400">
-              Humans and AI Agents
+              {t('landing.heroTitle2')}
             </span>
           </motion.h1>
           
@@ -110,8 +127,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-stone-500 max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Give your AI agents the power to create, read, edit, and collaborate on documents. 
-            A unified workspace for Markdown, Office, Tables, and Whiteboards.
+            {t('landing.heroDesc')}
           </motion.p>
           
           <motion.div 
@@ -124,13 +140,13 @@ export default function LandingPage() {
               onClick={() => setShowAuth(true)}
               className="flex items-center gap-2 bg-stone-900 text-white px-6 py-3 rounded-md font-medium hover:bg-stone-800 transition-colors"
             >
-              Get Started <ArrowRight className="w-4 h-4" />
+              {t('nav.getStarted')} <ArrowRight className="w-4 h-4" />
             </button>
             <a
               href="#workflow"
               className="flex items-center gap-2 bg-white text-stone-800 px-6 py-3 rounded-md font-medium hover:bg-stone-50 transition-colors border border-stone-200"
             >
-              See How It Works
+              {t('landing.seeHow')}
             </a>
           </motion.div>
         </div>
@@ -140,33 +156,12 @@ export default function LandingPage() {
       <section id="workflow" className="py-24 bg-stone-50 border-y border-stone-200">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-2xl font-semibold tracking-tight mb-4 text-stone-900">How MindX Works</h2>
-            <p className="text-stone-500">Four simple steps to give your agents superpowers.</p>
+            <h2 className="text-2xl font-semibold tracking-tight mb-4 text-stone-900">{t('landing.workflowTitle')}</h2>
+            <p className="text-stone-500">{t('landing.workflowDesc')}</p>
           </div>
           
           <div className="grid md:grid-cols-4 gap-8">
-            {[
-              {
-                icon: <Users className="w-5 h-5" />,
-                title: "1. Register",
-                desc: "Create your MindX account and access your default workspace."
-              },
-              {
-                icon: <Bot className="w-5 h-5" />,
-                title: "2. Create Agent",
-                desc: "Add an agent account to your workspace to generate a unique token."
-              },
-              {
-                icon: <Terminal className="w-5 h-5" />,
-                title: "3. Prompt Agent",
-                desc: "Send the generated Skill + Token prompt to your AI."
-              },
-              {
-                icon: <Sparkles className="w-5 h-5" />,
-                title: "4. Superpowers",
-                desc: "Your agent can now read, write, and manage documents in the workspace."
-              }
-            ].map((step, i) => (
+            {steps.map((step, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -190,38 +185,22 @@ export default function LandingPage() {
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-2xl font-semibold tracking-tight mb-4 text-stone-900">Core Capabilities</h2>
+            <h2 className="text-2xl font-semibold tracking-tight mb-4 text-stone-900">{t('landing.featuresTitle')}</h2>
             <p className="text-stone-500 max-w-2xl mx-auto">
-              MindX provides the infrastructure your agents need to interact with the real world of documents and data.
+              {t('landing.featuresDesc')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard 
-              icon={<FileText className="w-5 h-5 text-stone-600" />}
-              title="Create, Read, Edit"
-              desc="Full support for Markdown, Office documents, multi-dimensional tables, and whiteboard drawings."
-            />
-            <FeatureCard 
-              icon={<Database className="w-5 h-5 text-stone-600" />}
-              title="Isolated Workspaces"
-              desc="Create multiple workspaces to keep different projects and agents completely isolated from one another."
-            />
-            <FeatureCard 
-              icon={<Bot className="w-5 h-5 text-stone-600" />}
-              title="Agent Accounts"
-              desc="Provision dedicated accounts and tokens for each of your agents to securely access specific workspaces."
-            />
-            <FeatureCard 
-              icon={<Users className="w-5 h-5 text-stone-600" />}
-              title="Human-Agent Collaboration"
-              desc="A collaborative UI where humans and agents can work together, including text selection and commenting."
-            />
-            <FeatureCard 
-              icon={<RefreshCw className="w-5 h-5 text-stone-600" />}
-              title="Format Conversion"
-              desc="Seamlessly convert between various document formats (e.g., Markdown to PDF, CSV to Table)."
-            />
+            {features.map((feat, i) => (
+              <div key={i} className="p-6 rounded-xl bg-white border border-stone-200 hover:shadow-sm transition-shadow">
+                <div className="w-10 h-10 rounded bg-stone-50 flex items-center justify-center mb-4">
+                  {feat.icon}
+                </div>
+                <h3 className="text-lg font-medium mb-2 text-stone-900">{feat.title}</h3>
+                <p className="text-stone-500 text-sm leading-relaxed">{feat.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -235,21 +214,9 @@ export default function LandingPage() {
             </div>
             <span className="font-medium text-stone-900">MindX</span>
           </div>
-          <p className="text-stone-500 text-sm">© 2026 MindX Platform. All rights reserved.</p>
+          <p className="text-stone-500 text-sm">{t('landing.copyright')}</p>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
-  return (
-    <div className="p-6 rounded-xl bg-white border border-stone-200 hover:shadow-sm transition-shadow">
-      <div className="w-10 h-10 rounded bg-stone-50 flex items-center justify-center mb-4">
-        {icon}
-      </div>
-      <h3 className="text-lg font-medium mb-2 text-stone-900">{title}</h3>
-      <p className="text-stone-500 text-sm leading-relaxed">{desc}</p>
     </div>
   );
 }
