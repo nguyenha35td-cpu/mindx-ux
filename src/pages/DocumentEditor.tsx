@@ -13,16 +13,23 @@ import {
   Quote,
   Check,
   X,
+  Reply,
   Send,
-  Copy,
-  Globe,
+  History,
   Link2,
+  ChevronDown,
+  Download,
+  Copy,
+  FileText,
+  Eye,
+  Users,
+  Calendar,
+  ChevronRight,
   FilePlus2,
   Tag,
   Shield,
-  Users,
-  ChevronRight,
-  Plus
+  Plus,
+  Globe
 } from 'lucide-react';
 
 interface Paragraph {
@@ -154,7 +161,6 @@ export default function DocumentEditor() {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [sharePublishToWeb, setSharePublishToWeb] = useState(false);
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
-
   useEffect(() => {
     // Simple check to simulate different document types
     const params = new URLSearchParams(window.location.search);
@@ -746,92 +752,37 @@ export default function DocumentEditor() {
             </div>
           </button>
 
-          {/* Share Button with Dropdown */}
-          <div className="relative share-menu-container">
-            <button 
-              onClick={() => setShowShareMenu(!showShareMenu)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
-            >
-              <Share2 className="w-4 h-4" /> Share
-            </button>
-            
-            {showShareMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-stone-200 p-4 z-50"
-              >
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-medium text-stone-700 mb-2 block">权限设置</label>
-                    <select
-                      value={sharePermission}
-                      onChange={(e) => setSharePermission(e.target.value as 'private' | 'view')}
-                      className="w-full px-3 py-2 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-400"
-                    >
-                      <option value="private">仅我自己</option>
-                      <option value="view">所有人可查看</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <button
-                      onClick={handleCopyLink}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-stone-900 text-white rounded-md text-sm font-medium hover:bg-stone-800 transition-colors"
-                    >
-                      {copiedLink ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-                      {copiedLink ? '已复制' : '复制链接'}
-                    </button>
-                  </div>
-                  
-                  <div className="pt-3 border-t border-stone-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-medium text-stone-700">高级设置</span>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={allowDownload}
-                          onChange={(e) => setAllowDownload(e.target.checked)}
-                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
-                        />
-                        <span className="text-sm text-stone-600">允许下载</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={allowCopy}
-                          onChange={(e) => setAllowCopy(e.target.checked)}
-                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
-                        />
-                        <span className="text-sm text-stone-600">允许复制</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={allowDuplicate}
-                          onChange={(e) => setAllowDuplicate(e.target.checked)}
-                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
-                        />
-                        <span className="text-sm text-stone-600">允许创建副本</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </div>
+          {/* Comments Button */}
+          <button 
+            onClick={() => {
+              setShowCommentsSidebar(!showCommentsSidebar);
+              setShowVersionHistory(false);
+            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium transition-colors ${showCommentsSidebar ? 'bg-stone-100 text-stone-900' : 'text-stone-600'}`}
+          >
+            <MessageSquare className="w-4 h-4" /> 评论
+          </button>
 
+          {/* Version History Button */}
+          <button 
+            onClick={() => {
+              setShowVersionHistory(!showVersionHistory);
+              setShowCommentsSidebar(false);
+            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium transition-colors ${showVersionHistory ? 'bg-stone-100 text-stone-900' : 'text-stone-600'}`}
+          >
+            <History className="w-4 h-4" /> 版本历史
+          </button>
+
+          {/* Notion-style Share Popover */}
           <div className="relative">
             <button 
               onClick={() => setIsShareOpen(!isShareOpen)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
             >
-              <Share2 className="w-4 h-4" /> Share
+              <Share2 className="w-4 h-4" /> 分享
             </button>
 
-            {/* Notion-style Share Popover */}
             {isShareOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setIsShareOpen(false)} />
@@ -841,29 +792,29 @@ export default function DocumentEditor() {
                     <div className="flex items-center gap-2">
                       <input 
                         type="text" 
-                        placeholder="Add people, groups, or emails..." 
+                        placeholder="添加用户、Agent或邮箱..." 
                         className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-stone-400 focus:bg-white transition-colors placeholder:text-stone-400"
                       />
                       <button className="px-3 py-2 bg-stone-900 text-white text-sm font-medium rounded-lg hover:bg-stone-800 transition-colors shrink-0">
-                        Invite
+                        邀请
                       </button>
                     </div>
                   </div>
 
                   {/* Members list */}
                   <div className="p-2 max-h-60 overflow-y-auto">
-                    <div className="px-2 py-1 text-[10px] font-bold text-stone-400 uppercase tracking-wider">People with access</div>
+                    <div className="px-2 py-1 text-[10px] font-bold text-stone-400 uppercase tracking-wider">已拥有权限的成员</div>
                     
                     {/* Owner */}
                     <div className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-stone-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-stone-600 flex items-center justify-center text-white text-xs font-medium">M</div>
+                        <div className="w-7 h-7 rounded-full bg-stone-600 flex items-center justify-center text-white text-xs font-medium">我</div>
                         <div>
-                          <p className="text-sm font-medium text-stone-900">Me</p>
+                          <p className="text-sm font-medium text-stone-900">我</p>
                           <p className="text-[11px] text-stone-400">you@example.com</p>
                         </div>
                       </div>
-                      <span className="text-xs text-stone-400 font-medium">Owner</span>
+                      <span className="text-xs text-stone-400 font-medium">创建者</span>
                     </div>
 
                     {/* Claude agent */}
@@ -878,9 +829,9 @@ export default function DocumentEditor() {
                         </div>
                       </div>
                       <select className="text-xs text-stone-600 font-medium bg-transparent border border-stone-200 rounded-md px-2 py-1 focus:outline-none cursor-pointer hover:bg-stone-50">
-                        <option>Can edit</option>
-                        <option>Can view</option>
-                        <option>Can comment</option>
+                        <option>可编辑</option>
+                        <option>可查看</option>
+                        <option>可评论</option>
                       </select>
                     </div>
                   </div>
@@ -896,12 +847,12 @@ export default function DocumentEditor() {
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-stone-50 text-sm text-stone-700 font-medium transition-colors"
                     >
                       {shareLinkCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-stone-400" />}
-                      {shareLinkCopied ? 'Link copied!' : 'Copy link'}
+                      {shareLinkCopied ? '链接已复制！' : '复制文档链接'}
                     </button>
                     <div className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-stone-50 transition-colors">
                       <div className="flex items-center gap-2">
                         <Globe className="w-4 h-4 text-stone-400" />
-                        <span className="text-sm text-stone-700 font-medium">Publish to web</span>
+                        <span className="text-sm text-stone-700 font-medium">发布到 Web</span>
                       </div>
                       <button
                         onClick={() => setSharePublishToWeb(!sharePublishToWeb)}
@@ -915,9 +866,6 @@ export default function DocumentEditor() {
               </>
             )}
           </div>
-          <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
           
           {/* More Menu Button */}
           <div className="relative">
