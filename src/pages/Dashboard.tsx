@@ -1679,22 +1679,7 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                   })()}
                 </div>
 
-                <div className="bg-white border border-stone-200/80 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-8 space-y-8">
-                  <div>
-                    <h2 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">{t('settings.title')}</h2>
-                    <p className="text-sm text-stone-500">Manage your space defaults and internal prototype settings.</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-stone-700">{t('settings.workspaceName')}</label>
-                    <input 
-                      type="text" 
-                      value={activeWorkspace?.name ?? ''}
-                      onChange={(e) => renameActiveWorkspace(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-stone-50/50 border border-stone-200/80 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition-all"
-                    />
-                  </div>
-                </div>
+
               </motion.div>
             )}
 
