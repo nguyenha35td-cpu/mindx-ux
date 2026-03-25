@@ -5,7 +5,6 @@ import {
   ArrowLeft, 
   MessageSquare, 
   Share2, 
-  Save, 
   Bot, 
   Clock, 
   CheckCircle2,
@@ -16,8 +15,21 @@ import {
   Check,
   X,
   Reply,
-  MessageCircle,
-  Send
+  Send,
+  History,
+  Link2,
+  ChevronDown,
+  Download,
+  Copy,
+  FileText,
+  Eye,
+  Users,
+  Calendar,
+  ChevronRight,
+  FilePlus2,
+  Tag,
+  Shield,
+  Plus
 } from 'lucide-react';
 
 interface Paragraph {
@@ -35,11 +47,59 @@ interface ChatMessage {
   time: string;
 }
 
+interface VersionHistory {
+  id: string;
+  author: string;
+  authorType: 'human' | 'agent';
+  timestamp: string;
+  date: string;
+  changes: string;
+  paragraphs: Paragraph[];
+}
+
+interface AgentPermission {
+  agentId: string;
+  agentName: string;
+  permission: 'read' | 'edit';
+}
+
 export default function DocumentEditor() {
   const navigate = useNavigate();
   const currentUserName = 'You';
   const externalCollaboratorName = 'Maya Chen';
   const [isChatLog, setIsChatLog] = useState(false);
+  
+  // Sidebar states
+  const [showCommentsSidebar, setShowCommentsSidebar] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  
+  // Modal states
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [labelModalOpen, setLabelModalOpen] = useState(false);
+  const [agentPermissionModalOpen, setAgentPermissionModalOpen] = useState(false);
+  const [duplicateName, setDuplicateName] = useState('');
+  const [documentLabels, setDocumentLabels] = useState<string[]>(['Project Alpha', 'PRD']);
+  const [tagInput, setTagInput] = useState('');
+  const [usedTags] = useState<string[]>(['PRD', 'Data', 'Design', 'Research', 'Marketing', 'Meeting Notes', 'Finance']);
+  const [agentPermissions, setAgentPermissions] = useState<AgentPermission[]>([
+    { agentId: 'agent1', agentName: 'Claude Assistant', permission: 'edit' },
+    { agentId: 'agent2', agentName: 'Research Bot', permission: 'read' }
+  ]);
+  
+  // Share settings
+  const [sharePermission, setSharePermission] = useState<'private' | 'view'>('private');
+  const [allowDownload, setAllowDownload] = useState(false);
+  const [allowCopy, setAllowCopy] = useState(false);
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  
+  // Version history
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [versionFilterDate, setVersionFilterDate] = useState<string>('all');
+  const [versionFilterAuthor, setVersionFilterAuthor] = useState<string>('all');
+  
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: 'm1', sender: externalCollaboratorName, senderType: 'human', text: 'Hey Claude, can you help me draft the architecture for Project Alpha?', time: '10:00 AM' },
     { id: 'm2', sender: 'Claude 3.5 Sonnet', senderType: 'agent', text: 'Of course! I\'d be happy to help. What are the main requirements for the system?', time: '10:01 AM' },
@@ -130,6 +190,45 @@ export default function DocumentEditor() {
     }
   ]);
 
+  const [versionHistory, setVersionHistory] = useState<VersionHistory[]>([
+    {
+      id: 'v1',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent',
+      timestamp: '2 mins ago',
+      date: 'Today',
+      changes: 'Updated deployment section with staging approval',
+      paragraphs: [...paragraphs]
+    },
+    {
+      id: 'v2',
+      author: externalCollaboratorName,
+      authorType: 'human',
+      timestamp: '15 mins ago',
+      date: 'Today',
+      changes: 'Added deployment requirements',
+      paragraphs: paragraphs.slice(0, -1)
+    },
+    {
+      id: 'v3',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent',
+      timestamp: '1 hour ago',
+      date: 'Today',
+      changes: 'Expanded database schema section',
+      paragraphs: paragraphs.slice(0, 6)
+    },
+    {
+      id: 'v4',
+      author: currentUserName,
+      authorType: 'human',
+      timestamp: '2 hours ago',
+      date: 'Today',
+      changes: 'Initial architecture draft',
+      paragraphs: paragraphs.slice(0, 3)
+    }
+  ]);
+
   const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
   const [selectionMenu, setSelectionMenu] = useState<{ x: number, y: number, text: string } | null>(null);
   const commentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -202,6 +301,16 @@ export default function DocumentEditor() {
     }
   }, [activeCommentId]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showShareMenu && !(e.target as Element).closest('.share-menu-container')) {
+        setShowShareMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showShareMenu]);
+
   const highlightText = (text: string) => {
     let result: (string | React.ReactNode)[] = [text];
     
@@ -240,12 +349,37 @@ export default function DocumentEditor() {
     return result;
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleRestoreVersion = (versionId: string) => {
+    const version = versionHistory.find(v => v.id === versionId);
+    if (version) {
+      setParagraphs([...version.paragraphs]);
+      setShowVersionHistory(false);
+      setSelectedVersion(null);
+    }
+  };
+
+  const displayedParagraphs = selectedVersion 
+    ? versionHistory.find(v => v.id === selectedVersion)?.paragraphs || paragraphs
+    : paragraphs;
+
+  const filteredVersions = versionHistory.filter(v => {
+    if (versionFilterAuthor !== 'all' && v.author !== versionFilterAuthor) return false;
+    if (versionFilterDate !== 'all' && v.date !== versionFilterDate) return false;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-white text-stone-800 flex flex-col font-sans selection:bg-stone-200">
       {/* Header */}
       <header className="h-14 flex items-center justify-between px-4 border-b border-stone-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
+          <button onClick={() => navigate('/dashboard')} className="p-2 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2">
@@ -258,7 +392,7 @@ export default function DocumentEditor() {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs text-stone-500 mr-4">
             <Clock className="w-3 h-3" />
             Last edited 2 mins ago by Claude
@@ -276,18 +410,146 @@ export default function DocumentEditor() {
             </div>
           </div>
 
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors">
-            <RefreshCw className="w-4 h-4" /> Convert
+          {/* Share Button with Dropdown */}
+          <div className="relative share-menu-container">
+            <button 
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> Share
+            </button>
+            
+            {showShareMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-stone-200 p-4 z-50"
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-stone-700 mb-2 block">权限设置</label>
+                    <select
+                      value={sharePermission}
+                      onChange={(e) => setSharePermission(e.target.value as 'private' | 'view')}
+                      className="w-full px-3 py-2 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-400"
+                    >
+                      <option value="private">仅我自己</option>
+                      <option value="view">所有人可查看</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <button
+                      onClick={handleCopyLink}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-stone-900 text-white rounded-md text-sm font-medium hover:bg-stone-800 transition-colors"
+                    >
+                      {copiedLink ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+                      {copiedLink ? '已复制' : '复制链接'}
+                    </button>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-stone-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-medium text-stone-700">高级设置</span>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowDownload}
+                          onChange={(e) => setAllowDownload(e.target.checked)}
+                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <span className="text-sm text-stone-600">允许下载</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowCopy}
+                          onChange={(e) => setAllowCopy(e.target.checked)}
+                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <span className="text-sm text-stone-600">允许复制</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowDuplicate}
+                          onChange={(e) => setAllowDuplicate(e.target.checked)}
+                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <span className="text-sm text-stone-600">允许创建副本</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Version History Button */}
+          <button 
+            onClick={() => {
+              setShowVersionHistory(!showVersionHistory);
+              setShowCommentsSidebar(false);
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
+          >
+            <History className="w-4 h-4" /> 版本历史
           </button>
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors">
-            <Share2 className="w-4 h-4" /> Share
-          </button>
-          <button className="flex items-center gap-2 bg-stone-900 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-stone-800 transition-colors">
-            <Save className="w-4 h-4" /> Save
-          </button>
-          <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          
+          {/* More Menu Button */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 transition-colors"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+            
+            {showMoreMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)} />
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute right-0 top-full mt-1 w-48 bg-white border border-stone-200 rounded-lg shadow-xl z-20 overflow-hidden py-1"
+                >
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      setDuplicateName('副本-Project Alpha Architecture');
+                      setDuplicateModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                  >
+                    <FilePlus2 className="w-4 h-4 text-stone-400" />
+                    创建副本
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      setLabelModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                  >
+                    <Tag className="w-4 h-4 text-stone-400" />
+                    设置标签
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      setAgentPermissionModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                  >
+                    <Shield className="w-4 h-4 text-stone-400" />
+                    Agent权限设置
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -380,7 +642,7 @@ export default function DocumentEditor() {
                 </div>
               </div>
             ) : (
-              paragraphs.map((p) => (
+              displayedParagraphs.map((p) => (
                 <div key={p.id} className="group relative pl-10">
                   {/* Author Indicator */}
                   <div className="absolute left-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
@@ -411,7 +673,7 @@ export default function DocumentEditor() {
         </main>
 
         {/* Comments Sidebar */}
-        {!isChatLog && (
+        {!isChatLog && showCommentsSidebar && (
           <aside className="w-80 border-l border-stone-200 bg-stone-50 flex flex-col">
           <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-white">
             <h2 className="text-sm font-medium flex items-center gap-2 text-stone-900">
@@ -579,7 +841,315 @@ export default function DocumentEditor() {
           </div>
         </aside>
         )}
+
+        {/* Version History Sidebar */}
+        {!isChatLog && showVersionHistory && (
+          <aside className="w-80 border-l border-stone-200 bg-stone-50 flex flex-col">
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-white">
+              <h2 className="text-sm font-medium flex items-center gap-2 text-stone-900">
+                <History className="w-4 h-4 text-stone-500" />
+                版本历史
+              </h2>
+              <button
+                onClick={() => {
+                  setShowVersionHistory(false);
+                  setSelectedVersion(null);
+                }}
+                className="p-1 rounded hover:bg-stone-100 text-stone-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="p-4 border-b border-stone-200 bg-white space-y-3">
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1.5 block">按日期筛选</label>
+                <select
+                  value={versionFilterDate}
+                  onChange={(e) => setVersionFilterDate(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-stone-200 rounded text-xs focus:outline-none focus:border-stone-400"
+                >
+                  <option value="all">全部</option>
+                  <option value="Today">今天</option>
+                  <option value="Yesterday">昨天</option>
+                  <option value="This Week">本周</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1.5 block">按协作人筛选</label>
+                <select
+                  value={versionFilterAuthor}
+                  onChange={(e) => setVersionFilterAuthor(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-stone-200 rounded text-xs focus:outline-none focus:border-stone-400"
+                >
+                  <option value="all">全部</option>
+                  <option value={currentUserName}>{currentUserName}</option>
+                  <option value={externalCollaboratorName}>{externalCollaboratorName}</option>
+                  <option value="Claude 3.5 Sonnet">Claude 3.5 Sonnet</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Version List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {filteredVersions.map((version) => (
+                <motion.div
+                  key={version.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-3 rounded-lg border bg-white cursor-pointer transition-all ${
+                    selectedVersion === version.id
+                      ? 'border-stone-400 ring-2 ring-stone-900/5'
+                      : 'border-stone-200 hover:border-stone-300'
+                  }`}
+                  onClick={() => setSelectedVersion(version.id)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {version.authorType === 'agent' ? (
+                        <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center">
+                          <Bot className="w-3 h-3 text-stone-600" />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center text-[10px] text-stone-700">
+                          {version.author.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-xs font-medium text-stone-900">{version.author}</div>
+                        <div className="text-[10px] text-stone-500">{version.timestamp}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-stone-600 mb-3">{version.changes}</p>
+                  
+                  {selectedVersion === version.id && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRestoreVersion(version.id);
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-900 text-white rounded-md text-xs font-medium hover:bg-stone-800 transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      还原到此版本
+                    </button>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </aside>
+        )}
       </div>
+
+      {/* Duplicate Modal */}
+      {duplicateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDuplicateModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">创建副本</h2>
+            <input
+              type="text"
+              value={duplicateName}
+              onChange={(e) => setDuplicateName(e.target.value)}
+              className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 mb-4"
+              placeholder="副本名称"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDuplicateModalOpen(false)}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  if (duplicateName.trim()) {
+                    alert(`已创建副本：${duplicateName}`);
+                    // Here you would actually create the duplicate in the backend
+                  }
+                  setDuplicateModalOpen(false);
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                确认
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Label Modal */}
+      {labelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setLabelModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">设置标签</h2>
+            
+            {/* Current labels */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-stone-600 mb-2">已有标签</p>
+              <div className="flex flex-wrap gap-2">
+                {documentLabels.map((label, idx) => (
+                  <span 
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 text-stone-700 rounded-md text-xs"
+                  >
+                    {label}
+                    <button
+                      onClick={() => setDocumentLabels(prev => prev.filter((_, i) => i !== idx))}
+                      className="hover:text-red-600 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Input for new label */}
+            <div className="mb-4">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && tagInput.trim() && !documentLabels.includes(tagInput.trim())) {
+                    setDocumentLabels(prev => [...prev, tagInput.trim()]);
+                    setTagInput('');
+                  }
+                }}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 text-sm"
+                placeholder="输入标签后按回车添加"
+              />
+            </div>
+
+            {/* Historical tags */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-stone-600 mb-2">历史标签</p>
+              <div className="flex flex-wrap gap-2">
+                {usedTags
+                  .filter(tag => !documentLabels.includes(tag))
+                  .map((tag, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setDocumentLabels(prev => [...prev, tag])}
+                      className="px-2.5 py-1 bg-white border border-stone-200 text-stone-600 rounded-md text-xs hover:bg-stone-50 hover:border-stone-300 transition-colors"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setLabelModalOpen(false)}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  setLabelModalOpen(false);
+                  alert(`标签已更新：${documentLabels.join(', ')}`);
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                确认
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Agent Permission Modal */}
+      {agentPermissionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setAgentPermissionModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">Agent权限设置</h2>
+            
+            {/* Agent list with permissions */}
+            <div className="space-y-3 mb-4">
+              {agentPermissions.map((agent) => (
+                <div key={agent.agentId} className="flex items-center justify-between p-3 border border-stone-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm font-medium text-stone-900">{agent.agentName}</span>
+                  </div>
+                  <select
+                    value={agent.permission}
+                    onChange={(e) => {
+                      const newPermission = e.target.value as 'read' | 'edit';
+                      setAgentPermissions(prev => 
+                        prev.map(a => a.agentId === agent.agentId ? { ...a, permission: newPermission } : a)
+                      );
+                    }}
+                    className="px-3 py-1.5 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-400"
+                  >
+                    <option value="read">仅读取</option>
+                    <option value="edit">可编辑</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Agent button */}
+            <button
+              onClick={() => {
+                const newAgentId = `agent${agentPermissions.length + 1}`;
+                const newAgentName = prompt('输入Agent名称：');
+                if (newAgentName?.trim()) {
+                  setAgentPermissions(prev => [...prev, { 
+                    agentId: newAgentId, 
+                    agentName: newAgentName.trim(), 
+                    permission: 'read' 
+                  }]);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-stone-300 text-stone-600 rounded-lg text-sm font-medium hover:border-stone-400 hover:text-stone-900 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              添加Agent
+            </button>
+
+            <div className="flex gap-3 justify-end mt-6">
+              <button
+                onClick={() => setAgentPermissionModalOpen(false)}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  setAgentPermissionModalOpen(false);
+                  alert('Agent权限已更新');
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                确认
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

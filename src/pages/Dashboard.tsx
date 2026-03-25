@@ -34,7 +34,11 @@ import {
   Share2,
   Link as LinkIcon,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  FilePlus2
 } from 'lucide-react';
 
 const initialWorkspaces = [
@@ -71,29 +75,36 @@ interface WorkspaceDoc {
   labels: string[];
   creatorName: string;
   creatorType: 'human' | 'agent';
+  size: number; // Size in bytes
+}
+
+interface AgentPermission {
+  agentId: string;
+  agentName: string;
+  permission: 'read' | 'edit';
 }
 
 const initialDocuments: WorkspaceDoc[] = [
-  { id: 'd1', workspaceId: 'w1', name: 'Project Alpha Architecture', type: 'Markdown', date: '2 hours ago', lastModified: '2026-03-24T12:00:00Z', lastViewed: '2026-03-24T13:30:00Z', labels: ['Project Alpha', 'PRD'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd2', workspaceId: 'w1', name: 'Q3 Financial Projections', type: 'Table', date: 'Yesterday', lastModified: '2026-03-23T10:00:00Z', lastViewed: '2026-03-24T09:00:00Z', labels: ['Data', 'Finance'], creatorName: 'Data Analyzer', creatorType: 'agent' },
-  { id: 'd3', workspaceId: 'w1', name: 'User Flow Diagram', type: 'Whiteboard', date: 'Last week', lastModified: '2026-03-17T15:00:00Z', lastViewed: '2026-03-22T11:00:00Z', labels: ['Design', 'Project Alpha'], creatorName: currentUser.name, creatorType: 'human' },
-  { id: 'd6', workspaceId: 'w1', name: 'Claude & Maya: Feature Discussion', type: 'Chat Log', date: '3 hours ago', lastModified: '2026-03-24T11:00:00Z', lastViewed: '2026-03-24T11:30:00Z', labels: ['Meeting Notes'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd4', workspaceId: 'w1', name: 'Competitor Analysis', type: 'Markdown', date: '1 hour ago', lastModified: '2026-03-24T13:00:00Z', lastViewed: '2026-03-24T13:45:00Z', labels: ['Research', 'Data'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd5', workspaceId: 'w1', name: 'Marketing Strategy', type: 'Markdown', date: '2 days ago', lastModified: '2026-03-22T14:00:00Z', lastViewed: '2026-03-23T16:00:00Z', labels: ['PRD', 'Marketing'], creatorName: currentUser.name, creatorType: 'human' },
+  { id: 'd1', workspaceId: 'w1', name: 'Project Alpha Architecture', type: 'Markdown', date: '2 hours ago', lastModified: '2026-03-24T12:00:00Z', lastViewed: '2026-03-24T13:30:00Z', labels: ['Project Alpha', 'PRD'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 245760 },
+  { id: 'd2', workspaceId: 'w1', name: 'Q3 Financial Projections', type: 'Table', date: 'Yesterday', lastModified: '2026-03-23T10:00:00Z', lastViewed: '2026-03-24T09:00:00Z', labels: ['Data', 'Finance'], creatorName: 'Data Analyzer', creatorType: 'agent', size: 512000 },
+  { id: 'd3', workspaceId: 'w1', name: 'User Flow Diagram', type: 'Whiteboard', date: 'Last week', lastModified: '2026-03-17T15:00:00Z', lastViewed: '2026-03-22T11:00:00Z', labels: ['Design', 'Project Alpha'], creatorName: currentUser.name, creatorType: 'human', size: 102400 },
+  { id: 'd6', workspaceId: 'w1', name: 'Claude & Maya: Feature Discussion', type: 'Chat Log', date: '3 hours ago', lastModified: '2026-03-24T11:00:00Z', lastViewed: '2026-03-24T11:30:00Z', labels: ['Meeting Notes'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 81920 },
+  { id: 'd4', workspaceId: 'w1', name: 'Competitor Analysis', type: 'Markdown', date: '1 hour ago', lastModified: '2026-03-24T13:00:00Z', lastViewed: '2026-03-24T13:45:00Z', labels: ['Research', 'Data'], creatorName: 'Research Bot', creatorType: 'agent', size: 163840 },
+  { id: 'd5', workspaceId: 'w1', name: 'Marketing Strategy', type: 'Markdown', date: '2 days ago', lastModified: '2026-03-22T14:00:00Z', lastViewed: '2026-03-23T16:00:00Z', labels: ['PRD', 'Marketing'], creatorName: currentUser.name, creatorType: 'human', size: 122880 },
   // Agent scheduled task outputs — Daily Industry Digest
-  { id: 'd7', workspaceId: 'w1', name: 'Industry Digest — Mar 24', type: 'Markdown', date: 'Today', lastModified: '2026-03-24T08:00:00Z', lastViewed: '2026-03-24T10:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd8', workspaceId: 'w1', name: 'Industry Digest — Mar 23', type: 'Markdown', date: 'Yesterday', lastModified: '2026-03-23T08:00:00Z', lastViewed: '2026-03-23T12:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd9', workspaceId: 'w1', name: 'Industry Digest — Mar 22', type: 'Markdown', date: '2 days ago', lastModified: '2026-03-22T08:00:00Z', lastViewed: '2026-03-22T09:30:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd10', workspaceId: 'w1', name: 'Industry Digest — Mar 21', type: 'Markdown', date: '3 days ago', lastModified: '2026-03-21T08:00:00Z', lastViewed: '2026-03-21T11:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd11', workspaceId: 'w1', name: 'Industry Digest — Mar 20', type: 'Markdown', date: '4 days ago', lastModified: '2026-03-20T08:00:00Z', lastViewed: '2026-03-20T14:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd12', workspaceId: 'w1', name: 'Industry Digest — Mar 19', type: 'Markdown', date: '5 days ago', lastModified: '2026-03-19T08:00:00Z', lastViewed: '2026-03-19T10:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent' },
+  { id: 'd7', workspaceId: 'w1', name: 'Industry Digest — Mar 24', type: 'Markdown', date: 'Today', lastModified: '2026-03-24T08:00:00Z', lastViewed: '2026-03-24T10:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 45056 },
+  { id: 'd8', workspaceId: 'w1', name: 'Industry Digest — Mar 23', type: 'Markdown', date: 'Yesterday', lastModified: '2026-03-23T08:00:00Z', lastViewed: '2026-03-23T12:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 43008 },
+  { id: 'd9', workspaceId: 'w1', name: 'Industry Digest — Mar 22', type: 'Markdown', date: '2 days ago', lastModified: '2026-03-22T08:00:00Z', lastViewed: '2026-03-22T09:30:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 48128 },
+  { id: 'd10', workspaceId: 'w1', name: 'Industry Digest — Mar 21', type: 'Markdown', date: '3 days ago', lastModified: '2026-03-21T08:00:00Z', lastViewed: '2026-03-21T11:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 51200 },
+  { id: 'd11', workspaceId: 'w1', name: 'Industry Digest — Mar 20', type: 'Markdown', date: '4 days ago', lastModified: '2026-03-20T08:00:00Z', lastViewed: '2026-03-20T14:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 46080 },
+  { id: 'd12', workspaceId: 'w1', name: 'Industry Digest — Mar 19', type: 'Markdown', date: '5 days ago', lastModified: '2026-03-19T08:00:00Z', lastViewed: '2026-03-19T10:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 49152 },
   // Agent scheduled task outputs — Daily Report
-  { id: 'd13', workspaceId: 'w1', name: 'Daily Report — Mar 24', type: 'Markdown', date: 'Today', lastModified: '2026-03-24T18:00:00Z', lastViewed: '2026-03-24T18:30:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd14', workspaceId: 'w1', name: 'Daily Report — Mar 23', type: 'Markdown', date: 'Yesterday', lastModified: '2026-03-23T18:00:00Z', lastViewed: '2026-03-23T20:00:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd15', workspaceId: 'w1', name: 'Daily Report — Mar 22', type: 'Markdown', date: '2 days ago', lastModified: '2026-03-22T18:00:00Z', lastViewed: '2026-03-22T19:00:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd16', workspaceId: 'w1', name: 'Daily Report — Mar 21', type: 'Markdown', date: '3 days ago', lastModified: '2026-03-21T18:00:00Z', lastViewed: '2026-03-21T21:00:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd17', workspaceId: 'w1', name: 'Daily Report — Mar 20', type: 'Markdown', date: '4 days ago', lastModified: '2026-03-20T18:00:00Z', lastViewed: '2026-03-20T19:30:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd18', workspaceId: 'w1', name: 'Daily Report — Mar 19', type: 'Markdown', date: '5 days ago', lastModified: '2026-03-19T18:00:00Z', lastViewed: '2026-03-19T20:00:00Z', labels: ['Daily Report', 'Project Alpha'], creatorName: 'Claude Assistant', creatorType: 'agent' }
+  { id: 'd13', workspaceId: 'w1', name: 'Daily Report — Mar 24', type: 'Markdown', date: 'Today', lastModified: '2026-03-24T18:00:00Z', lastViewed: '2026-03-24T18:30:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 73728 },
+  { id: 'd14', workspaceId: 'w1', name: 'Daily Report — Mar 23', type: 'Markdown', date: 'Yesterday', lastModified: '2026-03-23T18:00:00Z', lastViewed: '2026-03-23T20:00:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 71680 },
+  { id: 'd15', workspaceId: 'w1', name: 'Daily Report — Mar 22', type: 'Markdown', date: '2 days ago', lastModified: '2026-03-22T18:00:00Z', lastViewed: '2026-03-22T19:00:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 69632 },
+  { id: 'd16', workspaceId: 'w1', name: 'Daily Report — Mar 21', type: 'Markdown', date: '3 days ago', lastModified: '2026-03-21T18:00:00Z', lastViewed: '2026-03-21T21:00:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 75776 },
+  { id: 'd17', workspaceId: 'w1', name: 'Daily Report — Mar 20', type: 'Markdown', date: '4 days ago', lastModified: '2026-03-20T18:00:00Z', lastViewed: '2026-03-20T19:30:00Z', labels: ['Daily Report'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 72704 },
+  { id: 'd18', workspaceId: 'w1', name: 'Daily Report — Mar 19', type: 'Markdown', date: '5 days ago', lastModified: '2026-03-19T18:00:00Z', lastViewed: '2026-03-19T20:00:00Z', labels: ['Daily Report', 'Project Alpha'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 77824 }
 ];
 
 interface Activity {
@@ -451,6 +462,15 @@ export default function Dashboard() {
   const [isLabelTypFilterOpen, setIsLabelTypFilterOpen] = useState(false);
   const [isLabelSortMenuOpen, setIsLabelSortMenuOpen] = useState(false);
   const [isLabelOwnerFilterOpen, setIsLabelOwnerFilterOpen] = useState(false);
+  
+  // Document actions
+  const [labelModalOpen, setLabelModalOpen] = useState(false);
+  const [agentPermissionModalOpen, setAgentPermissionModalOpen] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [tagInput, setTagInput] = useState('');
+  const [usedTags, setUsedTags] = useState<string[]>(['PRD', 'Data', 'Design', 'Research', 'Marketing', 'Meeting Notes', 'Finance']);
+  const [agentPermissions, setAgentPermissions] = useState<AgentPermission[]>([]);
+  
   const { t } = useLanguage();
 
   const location = useLocation();
@@ -466,7 +486,12 @@ export default function Dashboard() {
   useEffect(() => {
     // Show onboarding if coming from landing page with "onboarding" flag or if it's first time
     const params = new URLSearchParams(location.search);
-    if (params.get('onboarding') === 'true' || agents.length === 0) {
+    if (params.get('onboarding') === 'true') {
+      setShowOnboarding(true);
+      // Clear the onboarding parameter from URL
+      params.delete('onboarding');
+      navigate(`/dashboard?${params.toString()}`, { replace: true });
+    } else if (agents.length === 0) {
       setShowOnboarding(true);
     }
   }, []);
@@ -652,6 +677,197 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
           onClose={() => setShowOnboarding(false)} 
         />
       )}
+
+      {/* Label Modal */}
+      {labelModalOpen && selectedDocId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setLabelModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">设置标签</h2>
+            
+            {/* Existing labels */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-stone-600 mb-2">已有标签</p>
+              <div className="flex flex-wrap gap-2">
+                {documents.find(d => d.id === selectedDocId)?.labels.map(label => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 text-stone-700 text-sm rounded-full"
+                  >
+                    <Tag className="w-3 h-3" />
+                    {label}
+                    <button
+                      onClick={() => {
+                        setDocuments(prev => prev.map(d => 
+                          d.id === selectedDocId 
+                            ? { ...d, labels: d.labels.filter(l => l !== label) }
+                            : d
+                        ));
+                      }}
+                      className="p-0.5 rounded-full hover:bg-stone-200 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Add new label */}
+            <div className="mb-4">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && tagInput.trim()) {
+                    const newLabel = tagInput.trim();
+                    setDocuments(prev => prev.map(d => 
+                      d.id === selectedDocId && !d.labels.includes(newLabel)
+                        ? { ...d, labels: [...d.labels, newLabel] }
+                        : d
+                    ));
+                    if (!usedTags.includes(newLabel)) {
+                      setUsedTags(prev => [...prev, newLabel]);
+                    }
+                    setTagInput('');
+                  }
+                }}
+                placeholder="输入标签后按回车添加"
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 text-sm"
+              />
+            </div>
+
+            {/* Historical labels */}
+            <div>
+              <p className="text-xs font-medium text-stone-600 mb-2">历史标签</p>
+              <div className="flex flex-wrap gap-2">
+                {usedTags
+                  .filter(tag => !documents.find(d => d.id === selectedDocId)?.labels.includes(tag))
+                  .map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        setDocuments(prev => prev.map(d => 
+                          d.id === selectedDocId
+                            ? { ...d, labels: [...d.labels, tag] }
+                            : d
+                        ));
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-50 text-stone-600 text-xs rounded-full hover:bg-stone-100 transition-colors"
+                    >
+                      <Tag className="w-3 h-3" />
+                      {tag}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end mt-6">
+              <button
+                onClick={() => {
+                  setLabelModalOpen(false);
+                  setSelectedDocId(null);
+                  setTagInput('');
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                完成
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Agent Permission Modal */}
+      {agentPermissionModalOpen && selectedDocId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setAgentPermissionModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto"
+          >
+            <h2 className="text-lg font-semibold mb-4">Agent权限设置</h2>
+            
+            <div className="space-y-3 mb-6">
+              {agentPermissions.map(agentPerm => (
+                <div key={agentPerm.agentId} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-stone-600" />
+                    </div>
+                    <span className="text-sm font-medium text-stone-900">{agentPerm.agentName}</span>
+                  </div>
+                  <select
+                    value={agentPerm.permission}
+                    onChange={(e) => {
+                      setAgentPermissions(prev => prev.map(ap =>
+                        ap.agentId === agentPerm.agentId
+                          ? { ...ap, permission: e.target.value as 'read' | 'edit' }
+                          : ap
+                      ));
+                    }}
+                    className="px-3 py-1.5 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-400"
+                  >
+                    <option value="read">仅读取</option>
+                    <option value="edit">可编辑</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => {
+                // Add a new agent (simplified for demo)
+                const availableAgents = agents.filter(a => 
+                  !agentPermissions.some(ap => ap.agentId === a.id)
+                );
+                if (availableAgents.length > 0) {
+                  setAgentPermissions(prev => [...prev, {
+                    agentId: availableAgents[0].id,
+                    agentName: availableAgents[0].name,
+                    permission: 'read'
+                  }]);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-stone-200 rounded-lg text-sm text-stone-600 hover:bg-stone-50 transition-colors mb-4"
+            >
+              <Plus className="w-4 h-4" />
+              添加 Agent
+            </button>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setAgentPermissionModalOpen(false);
+                  setSelectedDocId(null);
+                  setAgentPermissions([]);
+                }}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  // Save permissions (in real app, this would save to backend)
+                  setAgentPermissionModalOpen(false);
+                  setSelectedDocId(null);
+                  setAgentPermissions([]);
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                保存
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside className="w-64 border-r border-stone-200 bg-[#F7F7F5] flex flex-col">
         <div className="h-14 flex items-center px-4">
@@ -1036,6 +1252,20 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                             creatorType={doc.creatorType}
                             onDelete={(id) => setDocuments(prev => prev.filter(d => d.id !== id))}
                             onLabelClick={(label) => { setSelectedGlobalLabel(label); setActiveTab('labels'); }}
+                            onSetLabel={(id) => {
+                              setSelectedDocId(id);
+                              setLabelModalOpen(true);
+                            }}
+                            onSetAgentPermission={(id) => {
+                              setSelectedDocId(id);
+                              const doc = documents.find(d => d.id === id);
+                              setAgentPermissions(agents.map(agent => ({
+                                agentId: agent.id,
+                                agentName: agent.name,
+                                permission: 'read'
+                              })));
+                              setAgentPermissionModalOpen(true);
+                            }}
                           />
                         ))
                       )}
@@ -1411,6 +1641,51 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-2xl"
               >
+                {/* Storage Capacity Bar */}
+                <div className="bg-white border border-stone-200/80 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 mb-6">
+                  {(() => {
+                    const totalCapacityBytes = 2 * 1024 * 1024 * 1024; // 2GB in bytes
+                    const usedBytes = documents.reduce((sum, doc) => sum + doc.size, 0);
+                    const usedPercentage = (usedBytes / totalCapacityBytes) * 100;
+                    
+                    const formatSize = (bytes: number) => {
+                      if (bytes >= 1024 * 1024 * 1024) {
+                        return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+                      } else if (bytes >= 1024 * 1024) {
+                        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+                      } else if (bytes >= 1024) {
+                        return `${(bytes / 1024).toFixed(2)} KB`;
+                      }
+                      return `${bytes} B`;
+                    };
+                    
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-semibold text-stone-900">账号容量</h3>
+                          <span className="text-sm text-stone-600">
+                            {formatSize(usedBytes)} / {formatSize(totalCapacityBytes)}
+                          </span>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${usedPercentage}%` }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+                          />
+                        </div>
+                        
+                        <p className="text-xs text-stone-500 mt-2">
+                          已使用 {usedPercentage.toFixed(1)}%，共 {documents.length} 个文档
+                        </p>
+                      </>
+                    );
+                  })()}
+                </div>
+
                 <div className="bg-white border border-stone-200/80 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-8 space-y-8">
                   <div>
                     <h2 className="text-xl font-semibold text-stone-900 mb-2 tracking-tight">{t('settings.title')}</h2>
@@ -1797,9 +2072,11 @@ interface DocRowProps {
   creatorType: 'human' | 'agent';
   onDelete: (id: string) => void;
   onLabelClick?: (label: string) => void;
+  onSetLabel?: (id: string) => void;
+  onSetAgentPermission?: (id: string) => void;
 }
 
-function DocRow({ docId, name, type, date, labels, creatorName, creatorType, onDelete, onLabelClick }: DocRowProps) {
+function DocRow({ docId, name, type, date, labels, creatorName, creatorType, onDelete, onLabelClick, onSetLabel, onSetAgentPermission }: DocRowProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -1913,7 +2190,30 @@ function DocRow({ docId, name, type, date, labels, creatorName, creatorType, onD
           {isMenuOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }} />
-              <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-stone-200 rounded-lg shadow-xl z-20 overflow-hidden py-1">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-stone-200 rounded-lg shadow-xl z-20 overflow-hidden py-1">
+                <button
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setIsMenuOpen(false); 
+                    onSetLabel?.(docId); 
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                >
+                  <Tag className="w-4 h-4 text-stone-400" />
+                  设置标签
+                </button>
+                <button
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setIsMenuOpen(false); 
+                    onSetAgentPermission?.(docId); 
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                >
+                  <Shield className="w-4 h-4 text-stone-400" />
+                  Agent权限设置
+                </button>
+                <div className="border-t border-stone-100 my-0.5" />
                 <button
                   onClick={handleDownload}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
