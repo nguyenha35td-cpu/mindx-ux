@@ -456,6 +456,15 @@ export default function Dashboard() {
   const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
   const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
   const [agentListMenuOpen, setAgentListMenuOpen] = useState<string | null>(null);
+
+  // Document actions
+  const [labelModalOpen, setLabelModalOpen] = useState(false);
+  const [agentPermissionModalOpen, setAgentPermissionModalOpen] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [tagInput, setTagInput] = useState('');
+  const [usedTags, setUsedTags] = useState<string[]>(['PRD', 'Data', 'Design', 'Research', 'Marketing', 'Meeting Notes', 'Finance']);
+  const [agentPermissions, setAgentPermissions] = useState<AgentPermission[]>([]);
+
   const { t, lang } = useLanguage();
 
   const location = useLocation();
@@ -638,7 +647,8 @@ export default function Dashboard() {
       lastViewed: new Date().toISOString(),
       labels: [],
       creatorName: currentUser.name,
-      creatorType: 'human'
+      creatorType: 'human',
+      size: 0
     };
 
     setDocuments([newDoc, ...documents]);
