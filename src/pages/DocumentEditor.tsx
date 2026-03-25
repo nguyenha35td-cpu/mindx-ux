@@ -110,7 +110,7 @@ export default function DocumentEditor() {
   const [isChatLog, setIsChatLog] = useState(false);
   
   // Sidebar states
-  const [showCommentsSidebar, setShowCommentsSidebar] = useState(false);
+  const [showCommentsSidebar, setShowCommentsSidebar] = useState(true);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
