@@ -13,22 +13,9 @@ import {
   Quote,
   Check,
   X,
-  Reply,
   Send,
-  History,
-  Link2,
-  ChevronDown,
-  Download,
   Copy,
-  FileText,
-  Eye,
-  Users,
-  Calendar,
-  ChevronRight,
-  FilePlus2,
-  Tag,
-  Shield,
-  Plus
+  Globe
 } from 'lucide-react';
 
 interface Paragraph {
@@ -126,6 +113,9 @@ export default function DocumentEditor() {
     { id: 'm4', sender: 'Claude 3.5 Sonnet', senderType: 'agent', text: 'Got it. For the Auth Service, I recommend using OAuth 2.0. The Data Service should probably use PostgreSQL for relational data.', time: '10:07 AM' },
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [sharePublishToWeb, setSharePublishToWeb] = useState(false);
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
 
   useEffect(() => {
     // Simple check to simulate different document types
@@ -795,15 +785,100 @@ export default function DocumentEditor() {
             )}
           </div>
 
-          {/* Version History Button */}
-          <button 
-            onClick={() => {
-              setShowVersionHistory(!showVersionHistory);
-              setShowCommentsSidebar(false);
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
-          >
-            <History className="w-4 h-4" /> 版本历史
+          <div className="relative">
+            <button 
+              onClick={() => setIsShareOpen(!isShareOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> Share
+            </button>
+
+            {/* Notion-style Share Popover */}
+            {isShareOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setIsShareOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-[420px] bg-white border border-stone-200 rounded-xl shadow-2xl z-40 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                  {/* Invite input */}
+                  <div className="p-4 border-b border-stone-100">
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Add people, groups, or emails..." 
+                        className="flex-1 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-stone-400 focus:bg-white transition-colors placeholder:text-stone-400"
+                      />
+                      <button className="px-3 py-2 bg-stone-900 text-white text-sm font-medium rounded-lg hover:bg-stone-800 transition-colors shrink-0">
+                        Invite
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Members list */}
+                  <div className="p-2 max-h-60 overflow-y-auto">
+                    <div className="px-2 py-1 text-[10px] font-bold text-stone-400 uppercase tracking-wider">People with access</div>
+                    
+                    {/* Owner */}
+                    <div className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-stone-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-full bg-stone-600 flex items-center justify-center text-white text-xs font-medium">M</div>
+                        <div>
+                          <p className="text-sm font-medium text-stone-900">Me</p>
+                          <p className="text-[11px] text-stone-400">you@example.com</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-stone-400 font-medium">Owner</span>
+                    </div>
+
+                    {/* Claude agent */}
+                    <div className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-stone-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white text-xs">
+                          <Bot className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-stone-900">Claude 3.5 Sonnet</p>
+                          <p className="text-[11px] text-stone-400">Agent</p>
+                        </div>
+                      </div>
+                      <select className="text-xs text-stone-600 font-medium bg-transparent border border-stone-200 rounded-md px-2 py-1 focus:outline-none cursor-pointer hover:bg-stone-50">
+                        <option>Can edit</option>
+                        <option>Can view</option>
+                        <option>Can comment</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Copy link & Publish */}
+                  <div className="border-t border-stone-100 p-3 space-y-2">
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://mindx.app/d/project-alpha`);
+                        setShareLinkCopied(true);
+                        setTimeout(() => setShareLinkCopied(false), 2000);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-stone-50 text-sm text-stone-700 font-medium transition-colors"
+                    >
+                      {shareLinkCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-stone-400" />}
+                      {shareLinkCopied ? 'Link copied!' : 'Copy link'}
+                    </button>
+                    <div className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-stone-50 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-stone-400" />
+                        <span className="text-sm text-stone-700 font-medium">Publish to web</span>
+                      </div>
+                      <button
+                        onClick={() => setSharePublishToWeb(!sharePublishToWeb)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${sharePublishToWeb ? 'bg-stone-900' : 'bg-stone-200'}`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${sharePublishToWeb ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
+            <MoreHorizontal className="w-4 h-4" />
           </button>
           
           {/* More Menu Button */}

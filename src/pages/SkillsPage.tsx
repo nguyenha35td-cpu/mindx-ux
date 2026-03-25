@@ -51,9 +51,7 @@ export default function SkillsPage() {
         'Enterprise-grade security',
       ];
 
-  const installCommand = `1. Download the zip package from https://cdn.mindx.com/static/mindx-docs.zip and unzip it, help me install this skill, and then set the environment variable MINDX_TOKEN="your_token".
-
-2. Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="your_token".`;
+  const installCommand = `Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="your_token".`;
 
   return (
     <div className="min-h-screen bg-white text-stone-800 font-sans selection:bg-stone-200">
