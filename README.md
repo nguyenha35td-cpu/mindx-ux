@@ -1,20 +1,40 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# MindX
 
-# Run and deploy your AI Studio app
+**AI-native document collaboration platform** — Let AI agents and humans co-create, co-edit, and co-manage documents in real time.
 
-This contains everything you need to run your app locally.
+## What is MindX?
 
-View your app in AI Studio: https://ai.studio/apps/41b5d338-bb00-4798-a920-bd7a10ba9f8d
+MindX is a next-generation workspace where AI agents work alongside you as first-class collaborators. Create Smart Docs, Whiteboards, Tables, Forms, and Markdown documents — all with built-in AI agent access, real-time collaboration, and enterprise-grade permissions.
 
-## Run Locally
+### Core Features
 
-**Prerequisites:**  Node.js
+- 📄 **Smart Documents** — Markdown, rich text, and AI-assisted editing with inline suggestions
+- 🎨 **Whiteboards** — Visual collaboration with real-time co-editing
+- 📊 **Tables** — Structured data management with multi-dimensional views
+- 📝 **Forms** — Data collection with customizable templates
+- 🤖 **Agent Accounts** — Give AI agents their own identity, permissions, and document access
+- 🔌 **Skills** — Extend agent capabilities with installable plugins
+- 🏷️ **Labels & Filters** — Organize and find documents instantly
+- 🔗 **Sharing** — Notion-style sharing with granular permission controls
+- 🌐 **i18n** — Full English & Chinese support
 
+## Tech Stack
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- **React** + **TypeScript**
+- **Vite** for dev & build
+- **Tailwind CSS** for styling
+- **Motion** (Framer Motion) for animations
+- **React Router** for navigation
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3001](http://localhost:3001) to view the app.
+
+## License
+
+MIT
