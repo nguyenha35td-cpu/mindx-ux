@@ -5,7 +5,6 @@ import {
   ArrowLeft, 
   MessageSquare, 
   Share2, 
-  Save, 
   Bot, 
   Clock, 
   Sparkles,
@@ -14,7 +13,22 @@ import {
   Quote,
   Check,
   X,
-  Send
+  Reply,
+  Send,
+  History,
+  Link2,
+  ChevronDown,
+  Download,
+  Copy,
+  FileText,
+  Eye,
+  Users,
+  Calendar,
+  ChevronRight,
+  FilePlus2,
+  Tag,
+  Shield,
+  Plus
 } from 'lucide-react';
 
 interface Paragraph {
@@ -32,91 +46,29 @@ interface ChatMessage {
   time: string;
 }
 
-type CommentThreadType = 'comment' | 'modify';
-
-interface CommentMessage {
+interface VersionHistory {
   id: string;
   author: string;
   authorType: 'human' | 'agent';
-  text: string;
-  time: string;
+  timestamp: string;
+  date: string;
+  changes: string;
+  paragraphs: Paragraph[];
 }
 
-interface CommentThread {
-  id: number;
-  highlight: string;
-  type: CommentThreadType;
-  resolved: boolean;
-  createdAtLabel: string;
-  messages: CommentMessage[];
-  draftText: string;
-  isDraft: boolean;
-  isReplying: boolean;
-  replyDraftText: string;
-  isAwaitingReply: boolean;
+interface AgentPermission {
+  agentId: string;
+  agentName: string;
+  permission: 'read' | 'edit';
 }
 
-function formatThreadHighlight(highlight: string) {
-  const normalized = highlight.replace(/\s+/g, ' ').trim();
-  return normalized.length > 60 ? `${normalized.slice(0, 57)}...` : normalized;
-}
-
-function formatCommentRequest(commentText: string) {
-  const normalized = commentText.replace(/\s+/g, ' ').trim();
-  return normalized.length > 90 ? `${normalized.slice(0, 87)}...` : normalized;
-}
-
-function buildModifyFollowUp(highlight: string, commentText: string) {
-  const focusedHighlight = formatThreadHighlight(highlight);
-  const lowerComment = commentText.toLowerCase();
-  const lowerHighlight = highlight.toLowerCase();
-
-  if ((lowerComment.includes('sharp') || lowerComment.includes('product')) && lowerHighlight.includes('core architecture')) {
-    return 'Proposed rewrite: "Project Alpha needs a production-ready architecture that keeps Auth, Data, and Notification services easy to scale independently."';
-  }
-
-  if (lowerComment.includes('clear') || lowerComment.includes('clarify')) {
-    return `I'll rewrite the passage around "${focusedHighlight}" so the decision and next step are explicit in one pass.`;
-  }
-
-  return `I'll revise the passage around "${focusedHighlight}" so the requested tone shift lands without breaking the surrounding flow.`;
-}
-
-function buildCommentFollowUp(highlight: string, commentText: string) {
-  const focusedHighlight = formatThreadHighlight(highlight);
-  const lowerComment = commentText.toLowerCase();
-  const lowerHighlight = highlight.toLowerCase();
-
-  if ((lowerComment.includes('sharp') || lowerComment.includes('product')) && lowerHighlight.includes('core architecture')) {
-    return 'Planned update: reframe the opening so it reads less like a note and more like a product-facing positioning line.';
-  }
-
-  if (lowerComment.includes('staging') || lowerHighlight.includes('deployment')) {
-    return 'Planned update: add a staging approval checkpoint, name the owner, and make the release sequence easier to scan.';
-  }
-
-  if (lowerComment.includes('owner') || lowerComment.includes('responsibility')) {
-    return `Planned update: clarify who owns "${focusedHighlight}" and call out the handoff point directly in the paragraph.`;
-  }
-
-  return `Planned update: address the note on "${focusedHighlight}" and tighten the nearby wording so the intent is clearer.`;
-}
-
-function buildAgentReply(type: CommentThreadType, highlight: string, commentText: string) {
-  const focusedHighlight = formatThreadHighlight(highlight);
-  const summarizedRequest = formatCommentRequest(commentText);
-
-  if (type === 'modify') {
-    return [
-      `Understood. I'll update "${focusedHighlight}" based on your note: "${summarizedRequest}".`,
-      buildModifyFollowUp(highlight, commentText)
-    ];
-  }
-
-  return [
-    `Makes sense. I'll address the note on "${focusedHighlight}" without changing the overall structure of the section.`,
-    buildCommentFollowUp(highlight, commentText)
-  ];
+interface Collaborator {
+  id: string;
+  name: string;
+  type: 'human' | 'agent';
+  isActive: boolean;
+  cursorPosition?: number; // Paragraph index where cursor is
+  color: string; // For cursor flag color
 }
 
 export default function DocumentEditor() {
@@ -124,6 +76,49 @@ export default function DocumentEditor() {
   const currentUserName = 'You';
   const externalCollaboratorName = 'Maya Chen';
   const [isChatLog, setIsChatLog] = useState(false);
+  
+  // Sidebar states
+  const [showCommentsSidebar, setShowCommentsSidebar] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showCollaboratorsSidebar, setShowCollaboratorsSidebar] = useState(false);
+  
+  // Modal states
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [labelModalOpen, setLabelModalOpen] = useState(false);
+  const [agentPermissionModalOpen, setAgentPermissionModalOpen] = useState(false);
+  const [duplicateName, setDuplicateName] = useState('');
+  const [documentLabels, setDocumentLabels] = useState<string[]>(['Project Alpha', 'PRD']);
+  const [tagInput, setTagInput] = useState('');
+  const [usedTags] = useState<string[]>(['PRD', 'Data', 'Design', 'Research', 'Marketing', 'Meeting Notes', 'Finance']);
+  const [agentPermissions, setAgentPermissions] = useState<AgentPermission[]>([
+    { agentId: 'agent1', agentName: 'Claude Assistant', permission: 'edit' },
+    { agentId: 'agent2', agentName: 'Research Bot', permission: 'read' }
+  ]);
+  
+  // Collaborators state
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([
+    { id: 'user1', name: currentUserName, type: 'human', isActive: true, color: '#3b82f6' },
+    { id: 'agent1', name: 'Claude Assistant', type: 'agent', isActive: true, cursorPosition: 8, color: '#8b5cf6' },
+    { id: 'agent2', name: 'Research Bot', type: 'agent', isActive: true, cursorPosition: 15, color: '#ec4899' },
+    { id: 'agent3', name: 'Data Analyzer', type: 'agent', isActive: false, color: '#10b981' }
+  ]);
+  
+  const [hoveredParagraph, setHoveredParagraph] = useState<number | null>(null);
+  
+  // Share settings
+  const [sharePermission, setSharePermission] = useState<'private' | 'view'>('private');
+  const [allowDownload, setAllowDownload] = useState(false);
+  const [allowCopy, setAllowCopy] = useState(false);
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  
+  // Version history
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [versionFilterDate, setVersionFilterDate] = useState<string>('all');
+  const [versionFilterAuthor, setVersionFilterAuthor] = useState<string>('all');
+  
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: 'm1', sender: externalCollaboratorName, senderType: 'human', text: 'Hey Claude, can you help me draft the architecture for Project Alpha?', time: '10:00 AM' },
     { id: 'm2', sender: 'Claude 3.5 Sonnet', senderType: 'agent', text: 'Of course! I\'d be happy to help. What are the main requirements for the system?', time: '10:01 AM' },
@@ -167,27 +162,135 @@ export default function DocumentEditor() {
     },
     {
       id: 'p5',
-      text: '### 2. Database Schema',
+      text: 'Each service is independently deployable and communicates through well-defined APIs. This architecture allows for better scalability and maintainability.',
       author: currentUserName,
       authorType: 'human'
     },
     {
       id: 'p6',
+      text: '### 2. Auth Service Details',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p7',
+      text: 'The Auth Service implements JWT-based authentication with refresh token rotation. It supports OAuth2.0 for third-party integrations including Google, GitHub, and Microsoft.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p8',
+      text: 'Security features include:\n- Rate limiting on login attempts\n- Multi-factor authentication support\n- Session management with Redis\n- Password hashing using bcrypt with salt rounds of 12',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p9',
+      text: '### 3. Data Service Architecture',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p10',
+      text: 'The Data Service handles all business logic and database operations. It implements the repository pattern for data access and uses TypeORM as the ORM layer.',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p11',
+      text: '#### 3.1 Database Schema',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p12',
       text: 'We will use PostgreSQL for the primary database. We will use Redis for caching to improve performance. The schema is designed to be highly normalized to ensure data integrity.',
       author: 'Claude 3.5 Sonnet',
       authorType: 'agent'
     },
     {
-      id: 'p7',
-      text: '### 3. Deployment',
+      id: 'p13',
+      text: 'Key tables include:\n- **users**: Store user profiles and credentials\n- **workspaces**: Organize user documents and projects\n- **documents**: Store document metadata and content\n- **permissions**: Handle access control and sharing',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p14',
+      text: '#### 3.2 Caching Strategy',
       author: currentUserName,
       authorType: 'human'
     },
     {
-      id: 'p8',
+      id: 'p15',
+      text: 'Redis is used for caching frequently accessed data with TTL-based expiration. Cache invalidation follows a write-through pattern to ensure consistency.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p16',
+      text: '### 4. Notification Service',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p17',
+      text: 'The Notification Service manages all outbound communications including emails, SMS, and push notifications. It uses a message queue (RabbitMQ) for reliable delivery.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p18',
+      text: 'Notification templates are stored in the database and support internationalization. The service tracks delivery status and provides retry mechanisms for failed notifications.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p19',
+      text: '### 5. API Gateway',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p20',
+      text: 'An API Gateway sits in front of all microservices to handle routing, rate limiting, and authentication. It uses Kong for its robust plugin ecosystem.',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p21',
+      text: '### 6. Deployment',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p22',
       text: 'The application will be containerized using Docker and deployed to a Kubernetes cluster. Maya also wants staging approval checkpoints called out before the release section.',
       author: externalCollaboratorName,
       authorType: 'human'
+    },
+    {
+      id: 'p23',
+      text: '#### 6.1 CI/CD Pipeline',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p24',
+      text: 'The CI/CD pipeline uses GitHub Actions for automated testing and deployment:\n1. Code push triggers automated tests\n2. Successful tests build Docker images\n3. Images are pushed to container registry\n4. Staging environment is automatically updated\n5. After approval, production deployment is triggered',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
+    },
+    {
+      id: 'p25',
+      text: '### 7. Monitoring and Observability',
+      author: currentUserName,
+      authorType: 'human'
+    },
+    {
+      id: 'p26',
+      text: 'We use Prometheus for metrics collection, Grafana for visualization, and ELK stack for log aggregation. Distributed tracing is implemented using Jaeger.',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent'
     }
   ]);
 
@@ -243,7 +346,46 @@ export default function DocumentEditor() {
     }
   ]);
 
-  const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null);
+  const [versionHistory, setVersionHistory] = useState<VersionHistory[]>([
+    {
+      id: 'v1',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent',
+      timestamp: '2 mins ago',
+      date: 'Today',
+      changes: 'Updated deployment section with staging approval',
+      paragraphs: [...paragraphs]
+    },
+    {
+      id: 'v2',
+      author: externalCollaboratorName,
+      authorType: 'human',
+      timestamp: '15 mins ago',
+      date: 'Today',
+      changes: 'Added deployment requirements',
+      paragraphs: paragraphs.slice(0, -1)
+    },
+    {
+      id: 'v3',
+      author: 'Claude 3.5 Sonnet',
+      authorType: 'agent',
+      timestamp: '1 hour ago',
+      date: 'Today',
+      changes: 'Expanded database schema section',
+      paragraphs: paragraphs.slice(0, 6)
+    },
+    {
+      id: 'v4',
+      author: currentUserName,
+      authorType: 'human',
+      timestamp: '2 hours ago',
+      date: 'Today',
+      changes: 'Initial architecture draft',
+      paragraphs: paragraphs.slice(0, 3)
+    }
+  ]);
+
+  const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
   const [selectionMenu, setSelectionMenu] = useState<{ x: number, y: number, text: string } | null>(null);
   const commentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const replyTimeoutsRef = useRef<Array<ReturnType<typeof window.setTimeout>>>([]);
@@ -446,6 +588,16 @@ export default function DocumentEditor() {
   const isCurrentUserMessage = (message: CommentMessage) =>
     message.authorType === 'human' && message.author === currentUserName;
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showShareMenu && !(e.target as Element).closest('.share-menu-container')) {
+        setShowShareMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showShareMenu]);
+
   const highlightText = (text: string) => {
     let result: (string | React.ReactNode)[] = [text];
     
@@ -484,12 +636,50 @@ export default function DocumentEditor() {
     return result;
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleRestoreVersion = (versionId: string) => {
+    const version = versionHistory.find(v => v.id === versionId);
+    if (version) {
+      setParagraphs([...version.paragraphs]);
+      setShowVersionHistory(false);
+      setSelectedVersion(null);
+    }
+  };
+
+  const scrollToCollaborator = (collaboratorId: string) => {
+    const collaborator = collaborators.find(c => c.id === collaboratorId);
+    if (collaborator && collaborator.cursorPosition !== undefined) {
+      const paragraphElements = editorRef.current?.querySelectorAll('.paragraph-item');
+      if (paragraphElements && paragraphElements[collaborator.cursorPosition]) {
+        paragraphElements[collaborator.cursorPosition].scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }
+  };
+
+  const displayedParagraphs = selectedVersion 
+    ? versionHistory.find(v => v.id === selectedVersion)?.paragraphs || paragraphs
+    : paragraphs;
+
+  const filteredVersions = versionHistory.filter(v => {
+    if (versionFilterAuthor !== 'all' && v.author !== versionFilterAuthor) return false;
+    if (versionFilterDate !== 'all' && v.date !== versionFilterDate) return false;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-white text-stone-800 flex flex-col font-sans selection:bg-stone-200">
       {/* Header */}
       <header className="h-14 flex items-center justify-between px-4 border-b border-stone-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
+          <button onClick={() => navigate('/dashboard')} className="p-2 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2">
@@ -502,14 +692,22 @@ export default function DocumentEditor() {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs text-stone-500 mr-4">
             <Clock className="w-3 h-3" />
             Last edited 2 mins ago by Claude
           </div>
           
-          <div className="flex -space-x-2 mr-4">
-            <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-[10px] text-stone-600 border border-white z-10" title="Claude 3.5 Sonnet">
+          <button 
+            onClick={() => {
+              setShowCollaboratorsSidebar(!showCollaboratorsSidebar);
+              setShowCommentsSidebar(false);
+              setShowVersionHistory(false);
+            }}
+            className="flex -space-x-2 mr-4 hover:opacity-80 transition-opacity cursor-pointer"
+            title="查看协作者"
+          >
+            <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-[10px] text-stone-600 border border-white z-10">
               <Bot className="w-3 h-3" />
             </div>
             <div
@@ -518,25 +716,155 @@ export default function DocumentEditor() {
             >
               {(isChatLog ? externalCollaboratorName : currentUserName).charAt(0)}
             </div>
+          </button>
+
+          {/* Share Button with Dropdown */}
+          <div className="relative share-menu-container">
+            <button 
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> Share
+            </button>
+            
+            {showShareMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-stone-200 p-4 z-50"
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-stone-700 mb-2 block">权限设置</label>
+                    <select
+                      value={sharePermission}
+                      onChange={(e) => setSharePermission(e.target.value as 'private' | 'view')}
+                      className="w-full px-3 py-2 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-400"
+                    >
+                      <option value="private">仅我自己</option>
+                      <option value="view">所有人可查看</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <button
+                      onClick={handleCopyLink}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-stone-900 text-white rounded-md text-sm font-medium hover:bg-stone-800 transition-colors"
+                    >
+                      {copiedLink ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+                      {copiedLink ? '已复制' : '复制链接'}
+                    </button>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-stone-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-medium text-stone-700">高级设置</span>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowDownload}
+                          onChange={(e) => setAllowDownload(e.target.checked)}
+                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <span className="text-sm text-stone-600">允许下载</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowCopy}
+                          onChange={(e) => setAllowCopy(e.target.checked)}
+                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <span className="text-sm text-stone-600">允许复制</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={allowDuplicate}
+                          onChange={(e) => setAllowDuplicate(e.target.checked)}
+                          className="rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <span className="text-sm text-stone-600">允许创建副本</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
 
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors">
-            <RefreshCw className="w-4 h-4" /> Convert
+          {/* Version History Button */}
+          <button 
+            onClick={() => {
+              setShowVersionHistory(!showVersionHistory);
+              setShowCommentsSidebar(false);
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors"
+          >
+            <History className="w-4 h-4" /> 版本历史
           </button>
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium text-stone-600 transition-colors">
-            <Share2 className="w-4 h-4" /> Share
-          </button>
-          <button className="flex items-center gap-2 bg-stone-900 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-stone-800 transition-colors">
-            <Save className="w-4 h-4" /> Save
-          </button>
-          <button className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 transition-colors">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          
+          {/* More Menu Button */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              className="p-1.5 rounded-md hover:bg-stone-100 text-stone-500 transition-colors"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+            
+            {showMoreMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)} />
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute right-0 top-full mt-1 w-48 bg-white border border-stone-200 rounded-lg shadow-xl z-20 overflow-hidden py-1"
+                >
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      setDuplicateName('副本-Project Alpha Architecture');
+                      setDuplicateModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                  >
+                    <FilePlus2 className="w-4 h-4 text-stone-400" />
+                    创建副本
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      setLabelModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                  >
+                    <Tag className="w-4 h-4 text-stone-400" />
+                    设置标签
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      setAgentPermissionModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                  >
+                    <Shield className="w-4 h-4 text-stone-400" />
+                    Agent权限设置
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Editor & Sidebar */}
-      <div className="flex-1 flex overflow-hidden relative" onMouseUp={handleMouseUp}>
+      <div className={`flex-1 flex overflow-hidden relative transition-all duration-300 ${
+        showCollaboratorsSidebar ? 'mr-80' : 'mr-0'
+      }`} onMouseUp={handleMouseUp}>
         {/* Floating Selection Menu */}
         {selectionMenu && !isChatLog && (
           <motion.div 
@@ -624,38 +952,80 @@ export default function DocumentEditor() {
                 </div>
               </div>
             ) : (
-              paragraphs.map((p) => (
-                <div key={p.id} className="group relative pl-10">
-                  {/* Author Indicator */}
-                  <div className="absolute left-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border shadow-sm ${
-                      p.authorType === 'agent' 
-                        ? 'bg-stone-50 text-stone-500 border-stone-200' 
-                        : 'bg-stone-100 text-stone-700 border-stone-300'
-                    }`} title={`Written by ${p.author}`}>
-                      {p.authorType === 'agent' ? <Bot className="w-3 h-3" /> : p.author.charAt(0)}
+              displayedParagraphs.map((p, index) => {
+                // Find collaborators with cursor at this position
+                const collaboratorsHere = collaborators.filter(
+                  c => c.isActive && c.cursorPosition === index && c.type === 'agent'
+                );
+                
+                return (
+                  <div 
+                    key={p.id} 
+                    className="group relative pl-10 paragraph-item"
+                    onMouseEnter={() => setHoveredParagraph(index)}
+                    onMouseLeave={() => setHoveredParagraph(null)}
+                  >
+                    {/* Author Indicator */}
+                    <div className="absolute left-0 top-1 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border shadow-sm ${
+                        p.authorType === 'agent' 
+                          ? 'bg-stone-50 text-stone-500 border-stone-200' 
+                          : 'bg-stone-100 text-stone-700 border-stone-300'
+                      }`} title={`Written by ${p.author}`}>
+                        {p.authorType === 'agent' ? <Bot className="w-3 h-3" /> : p.author.charAt(0)}
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="w-full bg-transparent border-none focus:outline-none text-stone-800 font-sans text-lg leading-relaxed whitespace-pre-wrap relative"
+                      contentEditable
+                      suppressContentEditableWarning
+                      onInput={(e) => {
+                        const newText = e.currentTarget.innerText;
+                        setParagraphs(prev => prev.map(item => item.id === p.id ? { ...item, text: newText } : item));
+                      }}
+                    >
+                      {highlightText(p.text)}
+                      
+                      {/* Cursor and Flag */}
+                      {collaboratorsHere.length > 0 && (
+                        <div className="absolute left-1/3 top-0 bottom-0 pointer-events-none">
+                          {collaboratorsHere.map((collaborator, idx) => (
+                            <div key={collaborator.id} style={{ marginLeft: `${idx * 24}px` }}>
+                              {/* Cursor Line - always visible */}
+                              <motion.div
+                                initial={{ opacity: 1 }}
+                                animate={{ opacity: [1, 0.3, 1] }}
+                                transition={{ duration: 1, repeat: Infinity }}
+                                className="absolute top-0 w-0.5 h-6"
+                                style={{ backgroundColor: collaborator.color }}
+                              />
+                              {/* Flag - only show on hover */}
+                              {hoveredParagraph === index && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="absolute -top-8 -left-2 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-white shadow-lg whitespace-nowrap"
+                                  style={{ backgroundColor: collaborator.color }}
+                                >
+                                  <Bot className="w-2.5 h-2.5" />
+                                  {collaborator.name}
+                                </motion.div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div 
-                    className="w-full bg-transparent border-none focus:outline-none text-stone-800 font-sans text-lg leading-relaxed whitespace-pre-wrap"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={(e) => {
-                      const newText = e.currentTarget.innerText;
-                      setParagraphs(prev => prev.map(item => item.id === p.id ? { ...item, text: newText } : item));
-                    }}
-                  >
-                    {highlightText(p.text)}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </main>
 
         {/* Comments Sidebar */}
-        {!isChatLog && (
+        {!isChatLog && showCommentsSidebar && (
           <aside className="w-80 border-l border-stone-200 bg-stone-50 flex flex-col">
           <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-white">
             <h2 className="text-sm font-medium flex items-center gap-2 text-stone-900">
@@ -930,7 +1300,404 @@ export default function DocumentEditor() {
           </div>
         </aside>
         )}
+
+        {/* Version History Sidebar */}
+        {!isChatLog && showVersionHistory && (
+          <aside className="w-80 border-l border-stone-200 bg-stone-50 flex flex-col">
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-white">
+              <h2 className="text-sm font-medium flex items-center gap-2 text-stone-900">
+                <History className="w-4 h-4 text-stone-500" />
+                版本历史
+              </h2>
+              <button
+                onClick={() => {
+                  setShowVersionHistory(false);
+                  setSelectedVersion(null);
+                }}
+                className="p-1 rounded hover:bg-stone-100 text-stone-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="p-4 border-b border-stone-200 bg-white space-y-3">
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1.5 block">按日期筛选</label>
+                <select
+                  value={versionFilterDate}
+                  onChange={(e) => setVersionFilterDate(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-stone-200 rounded text-xs focus:outline-none focus:border-stone-400"
+                >
+                  <option value="all">全部</option>
+                  <option value="Today">今天</option>
+                  <option value="Yesterday">昨天</option>
+                  <option value="This Week">本周</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1.5 block">按协作人筛选</label>
+                <select
+                  value={versionFilterAuthor}
+                  onChange={(e) => setVersionFilterAuthor(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-stone-200 rounded text-xs focus:outline-none focus:border-stone-400"
+                >
+                  <option value="all">全部</option>
+                  <option value={currentUserName}>{currentUserName}</option>
+                  <option value={externalCollaboratorName}>{externalCollaboratorName}</option>
+                  <option value="Claude 3.5 Sonnet">Claude 3.5 Sonnet</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Version List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {filteredVersions.map((version) => (
+                <motion.div
+                  key={version.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-3 rounded-lg border bg-white cursor-pointer transition-all ${
+                    selectedVersion === version.id
+                      ? 'border-stone-400 ring-2 ring-stone-900/5'
+                      : 'border-stone-200 hover:border-stone-300'
+                  }`}
+                  onClick={() => setSelectedVersion(version.id)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {version.authorType === 'agent' ? (
+                        <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center">
+                          <Bot className="w-3 h-3 text-stone-600" />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center text-[10px] text-stone-700">
+                          {version.author.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-xs font-medium text-stone-900">{version.author}</div>
+                        <div className="text-[10px] text-stone-500">{version.timestamp}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-stone-600 mb-3">{version.changes}</p>
+                  
+                  {selectedVersion === version.id && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRestoreVersion(version.id);
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-stone-900 text-white rounded-md text-xs font-medium hover:bg-stone-800 transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      还原到此版本
+                    </button>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </aside>
+        )}
+
+        {/* Collaborators Sidebar */}
+        {!isChatLog && showCollaboratorsSidebar && (
+          <aside className="fixed right-0 top-12 h-[calc(100vh-3rem)] w-80 border-l border-stone-200 bg-stone-50 flex flex-col z-30 shadow-lg">
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-white">
+              <h2 className="text-sm font-medium flex items-center gap-2 text-stone-900">
+                <Users className="w-4 h-4 text-stone-500" />
+                正在协作
+              </h2>
+              <button
+                onClick={() => setShowCollaboratorsSidebar(false)}
+                className="p-1 rounded hover:bg-stone-100 text-stone-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Collaborators List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {collaborators.filter(c => c.isActive).map((collaborator) => (
+                <motion.div
+                  key={collaborator.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  onClick={() => scrollToCollaborator(collaborator.id)}
+                  className={`p-3 rounded-lg border bg-white cursor-pointer transition-all hover:border-stone-300 ${
+                    collaborator.isActive ? 'shadow-sm' : 'opacity-60'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    {collaborator.type === 'agent' ? (
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
+                        style={{ backgroundColor: collaborator.color }}
+                      >
+                        <Bot className="w-5 h-5" />
+                      </div>
+                    ) : (
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg"
+                        style={{ backgroundColor: collaborator.color }}
+                      >
+                        {collaborator.name.charAt(0)}
+                      </div>
+                    )}
+                    
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-stone-900 truncate">
+                          {collaborator.name}
+                        </span>
+                        <span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      </div>
+                      {collaborator.cursorPosition !== undefined && (
+                        <div className="text-xs text-stone-500 mt-0.5 flex items-center gap-1">
+                          <span className="inline-block w-1 h-3 bg-stone-400 animate-pulse" />
+                          正在编辑
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Jump to cursor button */}
+                    {collaborator.cursorPosition !== undefined && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollToCollaborator(collaborator.id);
+                        }}
+                        className="p-1.5 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-600 transition-colors"
+                        title="跳转到光标位置"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Active Status Footer */}
+            <div className="p-4 border-t border-stone-200 bg-white">
+              <div className="text-xs text-stone-500 text-center">
+                {collaborators.filter(c => c.isActive).length} 人正在协作
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
+
+      {/* Duplicate Modal */}
+      {duplicateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDuplicateModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">创建副本</h2>
+            <input
+              type="text"
+              value={duplicateName}
+              onChange={(e) => setDuplicateName(e.target.value)}
+              className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 mb-4"
+              placeholder="副本名称"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDuplicateModalOpen(false)}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  if (duplicateName.trim()) {
+                    alert(`已创建副本：${duplicateName}`);
+                    // Here you would actually create the duplicate in the backend
+                  }
+                  setDuplicateModalOpen(false);
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                确认
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Label Modal */}
+      {labelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setLabelModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">设置标签</h2>
+            
+            {/* Current labels */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-stone-600 mb-2">已有标签</p>
+              <div className="flex flex-wrap gap-2">
+                {documentLabels.map((label, idx) => (
+                  <span 
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 text-stone-700 rounded-md text-xs"
+                  >
+                    {label}
+                    <button
+                      onClick={() => setDocumentLabels(prev => prev.filter((_, i) => i !== idx))}
+                      className="hover:text-red-600 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Input for new label */}
+            <div className="mb-4">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && tagInput.trim() && !documentLabels.includes(tagInput.trim())) {
+                    setDocumentLabels(prev => [...prev, tagInput.trim()]);
+                    setTagInput('');
+                  }
+                }}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:border-stone-400 text-sm"
+                placeholder="输入标签后按回车添加"
+              />
+            </div>
+
+            {/* Historical tags */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-stone-600 mb-2">历史标签</p>
+              <div className="flex flex-wrap gap-2">
+                {usedTags
+                  .filter(tag => !documentLabels.includes(tag))
+                  .map((tag, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setDocumentLabels(prev => [...prev, tag])}
+                      className="px-2.5 py-1 bg-white border border-stone-200 text-stone-600 rounded-md text-xs hover:bg-stone-50 hover:border-stone-300 transition-colors"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setLabelModalOpen(false)}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  setLabelModalOpen(false);
+                  alert(`标签已更新：${documentLabels.join(', ')}`);
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                确认
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Agent Permission Modal */}
+      {agentPermissionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setAgentPermissionModalOpen(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-lg font-semibold mb-4">Agent权限设置</h2>
+            
+            {/* Agent list with permissions */}
+            <div className="space-y-3 mb-4">
+              {agentPermissions.map((agent) => (
+                <div key={agent.agentId} className="flex items-center justify-between p-3 border border-stone-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm font-medium text-stone-900">{agent.agentName}</span>
+                  </div>
+                  <select
+                    value={agent.permission}
+                    onChange={(e) => {
+                      const newPermission = e.target.value as 'read' | 'edit';
+                      setAgentPermissions(prev => 
+                        prev.map(a => a.agentId === agent.agentId ? { ...a, permission: newPermission } : a)
+                      );
+                    }}
+                    className="px-3 py-1.5 border border-stone-200 rounded-md text-sm focus:outline-none focus:border-stone-400"
+                  >
+                    <option value="read">仅读取</option>
+                    <option value="edit">可编辑</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Agent button */}
+            <button
+              onClick={() => {
+                const newAgentId = `agent${agentPermissions.length + 1}`;
+                const newAgentName = prompt('输入Agent名称：');
+                if (newAgentName?.trim()) {
+                  setAgentPermissions(prev => [...prev, { 
+                    agentId: newAgentId, 
+                    agentName: newAgentName.trim(), 
+                    permission: 'read' 
+                  }]);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-stone-300 text-stone-600 rounded-lg text-sm font-medium hover:border-stone-400 hover:text-stone-900 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              添加Agent
+            </button>
+
+            <div className="flex gap-3 justify-end mt-6">
+              <button
+                onClick={() => setAgentPermissionModalOpen(false)}
+                className="px-4 py-2 text-sm text-stone-600 hover:text-stone-900 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  setAgentPermissionModalOpen(false);
+                  alert('Agent权限已更新');
+                }}
+                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                确认
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
