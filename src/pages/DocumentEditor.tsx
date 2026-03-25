@@ -752,16 +752,7 @@ export default function DocumentEditor() {
             </div>
           </button>
 
-          {/* Comments Button */}
-          <button 
-            onClick={() => {
-              setShowCommentsSidebar(!showCommentsSidebar);
-              setShowVersionHistory(false);
-            }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-stone-100 text-sm font-medium transition-colors ${showCommentsSidebar ? 'bg-stone-100 text-stone-900' : 'text-stone-600'}`}
-          >
-            <MessageSquare className="w-4 h-4" /> 评论
-          </button>
+
 
           {/* Version History Button */}
           <button 
@@ -866,6 +857,18 @@ export default function DocumentEditor() {
               </>
             )}
           </div>
+          
+          {/* Comments Button */}
+          <button 
+            onClick={() => {
+              setShowCommentsSidebar(!showCommentsSidebar);
+              setShowVersionHistory(false);
+            }}
+            className={`p-1.5 rounded-md hover:bg-stone-100 transition-colors ${showCommentsSidebar ? 'bg-stone-100 text-stone-900' : 'text-stone-500'}`}
+            title="查看评论"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
           
           {/* More Menu Button */}
           <div className="relative">
