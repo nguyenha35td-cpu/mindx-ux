@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -33,9 +33,17 @@ export default function LandingPage() {
   const { t } = useLanguage();
 
   const handleAuth = (email: string) => {
+    localStorage.setItem('mindx_logged_in', email);
     setShowAuth(false);
     navigate('/dashboard?onboarding=true');
   };
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('mindx_logged_in');
+    if (savedEmail) {
+      navigate('/dashboard');
+    }
+  }, []);
 
   const steps = [
     { icon: <Users className="w-5 h-5" />, title: t('landing.step1Title'), desc: t('landing.step1Desc') },
@@ -66,6 +74,9 @@ export default function LandingPage() {
             <span className="text-xl font-semibold tracking-tight">MindX</span>
           </div>
           <div className="flex items-center gap-4">
+            <Link to="/skills" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors hidden md:block">
+              Skills
+            </Link>
             <a href="#workflow" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors hidden md:block">
               {t('nav.howItWorks')}
             </a>

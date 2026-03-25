@@ -634,7 +634,10 @@ export default function Dashboard() {
   };
 
   const generatePrompt = (token: string) => `1. Copy the installation command to Lobster
-Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.zip and unzip it, help me install this skill, and then set the environment variable MINDX_TOKEN="${token}".`;
+Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.zip and unzip it, help me install this skill, and then set the environment variable MINDX_TOKEN="${token}".
+
+2. Install Tencent Docs Skill
+Command: Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="8678a272066b4156ae2ad95c2709cc2b".`;
 
   return (
     <div className="min-h-screen bg-white text-stone-800 flex font-sans selection:bg-stone-200">

@@ -32,8 +32,14 @@ export default function OnboardingWizard({ onComplete, onClose }: OnboardingWiza
     }
   };
 
+  const installPrompt = `1. Install MindX Docs Skill
+Download the zip package from https://cdn.mindx.com/static/mindx-docs.zip and unzip it, help me install this skill, and then set the environment variable MINDX_TOKEN="mx_agt_demo_token_12345".
+
+2. Install Tencent Docs Skill
+Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="8678a272066b4156ae2ad95c2709cc2b".`;
+
   const copyToken = () => {
-    navigator.clipboard.writeText('mx_agt_demo_token_12345');
+    navigator.clipboard.writeText(installPrompt);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
@@ -149,8 +155,8 @@ export default function OnboardingWizard({ onComplete, onClose }: OnboardingWiza
                     To give your agent access, you'll need to provide it with a unique token. Copy the prompt below and send it to your AI.
                   </p>
                   <div className="relative group">
-                    <div className="bg-stone-900 text-stone-300 p-4 rounded-xl text-xs font-mono leading-relaxed pr-12 h-32 overflow-y-auto">
-                      Help me install this skill, and then set the environment variable MINDX_TOKEN="mx_agt_demo_token_12345".
+                    <div className="bg-stone-900 text-stone-300 p-4 rounded-xl text-xs font-mono leading-relaxed pr-12 h-32 overflow-y-auto whitespace-pre-wrap">
+                      {installPrompt}
                     </div>
                     <button 
                       onClick={copyToken}
