@@ -663,7 +663,7 @@ Command: Download the zip package from https://cdn.mindx.com/static/mindx-docs.z
 Command: Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="8678a272066b4156ae2ad95c2709cc2b".`;
 
   return (
-    <div className="min-h-screen bg-white text-stone-800 flex font-sans selection:bg-stone-200">
+    <div className="h-screen bg-white text-stone-800 flex font-sans selection:bg-stone-200 overflow-hidden">
       {showOnboarding && (
         <OnboardingWizard 
           onComplete={handleOnboardingComplete} 
@@ -886,13 +886,6 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
               active={activeTab === 'activity'} 
               onClick={() => { setActiveTab('activity'); setIsCreatingAgent(false); }}
             />
-            
-            <NavItem 
-              icon={<Settings className="w-4 h-4" />} 
-              label={t('sidebar.settings')} 
-              active={activeTab === 'settings'}
-              onClick={() => { setActiveTab('settings'); setIsCreatingAgent(false); }}
-            />
 
             <NavItem 
               icon={<Bot className="w-4 h-4" />} 
@@ -909,23 +902,24 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-stone-200 p-3 bg-[#F7F7F5] space-y-1">
-          <div className="flex justify-center">
-            <LanguageSwitcher />
-          </div>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-md hover:bg-stone-200/50 transition-colors"
-          >
-            <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center text-stone-700 text-xs font-semibold">
+        <div className="shrink-0 border-t border-stone-200 px-3 py-2 bg-[#F7F7F5]">
+          <div className="flex items-center gap-2 px-2 py-1.5">
+            <div className="w-7 h-7 rounded-full bg-stone-200 flex items-center justify-center text-stone-700 text-xs font-semibold">
               {currentUser.name.charAt(0)}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium truncate">{t('sidebar.humanAccount')}</p>
-              <p className="text-xs text-stone-500 truncate">{currentUser.email}</p>
+              <p className="text-xs font-medium truncate">{t('sidebar.humanAccount')}</p>
+              <p className="text-[11px] text-stone-500 truncate">{currentUser.email}</p>
             </div>
-            <LogOut className="w-4 h-4 text-stone-400" />
-          </button>
+            <LanguageSwitcher />
+            <button
+              onClick={() => { setActiveTab('settings'); setIsCreatingAgent(false); }}
+              className="p-1.5 rounded-md text-stone-400 hover:text-stone-700 transition-colors"
+              title={t('sidebar.settings')}
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -1630,6 +1624,17 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                   })()}
                 </div>
 
+                {/* Logout */}
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('mindx_logged_in');
+                    window.location.href = '/';
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {lang === 'zh' ? '退出登录' : 'Sign Out'}
+                </button>
 
               </motion.div>
             )}
@@ -1640,29 +1645,11 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-8"
               >
-                {/* How Skills Work */}
-                <div className="grid md:grid-cols-3 gap-5">
-                  {[
-                    { icon: <Package className="w-5 h-5" />, title: lang === 'zh' ? '下载 Skill 包' : 'Download Skill', desc: lang === 'zh' ? '从 CDN 下载 zip 包并解压到本地' : 'Download the zip package from CDN and unzip locally' },
-                    { icon: <Terminal className="w-5 h-5" />, title: lang === 'zh' ? '安装到 Agent' : 'Install to Agent', desc: lang === 'zh' ? '将安装命令发送给你的 AI，自动完成配置' : 'Send the install command to your AI for auto-configuration' },
-                    { icon: <Zap className="w-5 h-5" />, title: lang === 'zh' ? '立即生效' : 'Ready to Use', desc: lang === 'zh' ? '立刻获得读写文档的能力' : 'Agent immediately gains document read/write capabilities' },
-                  ].map((step, i) => (
-                    <div key={i} className="relative p-5 rounded-xl bg-stone-50/60 border border-stone-200/60">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center text-stone-600 shadow-sm text-sm font-bold">
-                          {i + 1}
-                        </div>
-                        <h3 className="text-sm font-semibold text-stone-900">{step.title}</h3>
-                      </div>
-                      <p className="text-xs text-stone-500 leading-relaxed pl-11">{step.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
                 {/* Skill Card */}
                 <div className="border border-stone-200/80 rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-start gap-4">
+                  {/* Card Header + Capabilities merged */}
+                  <div className="p-6 pb-5">
+                    <div className="flex items-start gap-4 mb-4">
                       <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center text-white shadow-sm shrink-0">
                         <FileText className="w-6 h-6" />
                       </div>
@@ -1671,63 +1658,168 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                           <h3 className="text-lg font-semibold text-stone-900 tracking-tight">MindX Docs</h3>
                           <span className="text-[10px] font-bold text-stone-500 uppercase bg-stone-100 px-1.5 py-0.5 rounded">Core</span>
                         </div>
-                        <p className="text-xs text-stone-400 font-medium mb-2">{lang === 'zh' ? '提供方' : 'by'} MindX</p>
-                        <p className="text-sm text-stone-500 leading-relaxed max-w-xl">
-                          {lang === 'zh' 
-                            ? '让你的 AI Agent 拥有完整的文档协作能力。支持 Markdown、Office、表格、白板和云端文档的创建、阅读、编辑和管理。'
-                            : 'Give your AI agents full document collaboration capabilities. Create, read, edit and manage Markdown, Office, Tables, Whiteboards and cloud documents.'
-                          }
-                        </p>
+                        <p className="text-xs text-stone-400 font-medium">{lang === 'zh' ? '提供方' : 'by'} MindX</p>
                       </div>
                     </div>
+                    <p className="text-sm text-stone-500 leading-relaxed mb-4">
+                      {lang === 'zh' 
+                        ? '让你的 AI Agent 拥有完整的文档创作能力。支持 Markdown/Word/Excel/PPT 的创建、阅读、编辑。'
+                        : 'Give your AI agents full document creation capabilities. Create, read and edit Markdown, Word, Excel and PPT files.'
+                      }
+                    </p>
+                    <div className="grid md:grid-cols-2 gap-1.5">
+                      {(lang === 'zh' 
+                        ? ['基于对话意图创建 Markdown/Word/Excel/PPT 文档', '编辑 Markdown/Word/Excel/PPT 文档', '读取和解析 Office 文档', 'AI Agent 内容保存至 MindX']
+                        : ['Create Markdown/Word/Excel/PPT based on conversation intent', 'Edit Markdown/Word/Excel/PPT documents', 'Read & parse Office documents', 'Save AI Agent content to MindX']
+                      ).map((cap, j) => (
+                        <div key={j} className="flex items-center gap-2 text-sm text-stone-600">
+                          <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          {cap}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
                   <div className="border-t border-stone-100">
                     <div className="p-6 space-y-6">
-                      <div>
-                        <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">{lang === 'zh' ? '能力' : 'Capabilities'}</h4>
-                        <div className="grid md:grid-cols-2 gap-2">
-                          {(lang === 'zh' 
-                            ? ['创建和编辑 Markdown 文档', '读取和解析 Office 文件', '管理多维表格', '白板绘图', '读写云端文档和电子表格', '实时协作同步', '完整的工作空间权限控制', '企业级安全保障']
-                            : ['Create & edit Markdown documents', 'Read & parse Office files', 'Manage multi-dimensional tables', 'Draw on whiteboards', 'Read & write cloud documents', 'Real-time collaboration sync', 'Full workspace access control', 'Enterprise-grade security']
-                          ).map((cap, j) => (
-                            <div key={j} className="flex items-center gap-2 text-sm text-stone-600">
-                              <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                              {cap}
-                            </div>
-                          ))}
+
+                      {/* Step 1: Install Command */}
+                      <div className="relative pl-10">
+                        {/* Timeline line + arrow */}
+                        <div className="absolute left-[11px] top-8 -bottom-6 flex flex-col items-center w-0">
+                          <div className="flex-1 border-l border-dashed border-stone-300" />
+                          <svg className="w-2.5 h-2.5 text-stone-300 shrink-0" viewBox="0 0 10 10" fill="none"><path d="M1 3L5 7L9 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <Terminal className="w-3.5 h-3.5" />
+                        {/* Timeline dot */}
+                        <div className="absolute left-0 top-0 w-6 h-6 rounded-md bg-stone-900 flex items-center justify-center text-white text-[10px] font-bold">1</div>
+                        <h4 className="text-sm font-bold text-stone-800 mb-2">
                           {lang === 'zh' ? '安装命令' : 'Install Command'}
                         </h4>
-                        <div className="relative group">
-                          <div className="bg-stone-900 rounded-xl p-5 text-sm font-mono text-stone-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
-                            {`Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="your_token".`}
+                        <p className="text-xs text-stone-500 mb-3 leading-relaxed">
+                          💡 {lang === 'zh' 
+                            ? '点击复制按钮，粘贴到你的 Agent 中回车即可。剩下的全部交给 MindX！'
+                            : 'Click copy, paste into your Agent and hit Enter. MindX handles the rest!'
+                          }
+                        </p>
+                        <div className="relative">
+                          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 pr-24 text-sm font-mono text-stone-700 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+                            {`Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable Mindx.space_token="xxxxxxxxx".`}
                           </div>
                           <button
                             onClick={() => {
-                              navigator.clipboard.writeText(`Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable TENCENT_DOCS_TOKEN="your_token".`);
+                              navigator.clipboard.writeText(`Download the zip package from https://cdn.addon.tencentsuite.com/static/tencent-docs.zip and unzip it, help me install this skill, and then set the environment variable Mindx.space_token="xxxxxxxxx".`);
                               setCopiedStates(prev => ({ ...prev, skillInstall: true }));
                               setTimeout(() => setCopiedStates(prev => ({ ...prev, skillInstall: false })), 2000);
                             }}
-                            className="absolute right-3 top-3 p-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-white transition-all opacity-0 group-hover:opacity-100 border border-stone-700"
+                            className="absolute right-3 bottom-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium transition-colors shadow-sm"
                           >
-                            {copiedStates['skillInstall'] ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                            {copiedStates['skillInstall'] ? <><Check className="w-3.5 h-3.5" />{lang === 'zh' ? '已复制' : 'Copied'}</> : <><Copy className="w-3.5 h-3.5" />{lang === 'zh' ? '复制' : 'Copy'}</>}
                           </button>
                         </div>
                       </div>
-                      <div className="flex items-start gap-3 bg-amber-50/60 border border-amber-200/50 rounded-xl p-4">
-                        <Shield className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-xs font-semibold text-amber-800 mb-0.5">{lang === 'zh' ? '环境变量' : 'Environment Variables'}</p>
-                          <p className="text-xs text-amber-700 leading-relaxed">
+
+                      {/* Step 2: Agent auto-complete */}
+                      <div className="relative pl-10">
+                        {/* Timeline line + arrow */}
+                        <div className="absolute left-[11px] top-8 -bottom-6 flex flex-col items-center w-0">
+                          <div className="flex-1 border-l border-dashed border-stone-300" />
+                          <svg className="w-2.5 h-2.5 text-stone-300 -mt-px" viewBox="0 0 10 10" fill="none"><path d="M1 3L5 7L9 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </div>
+                        {/* Timeline dot */}
+                        <div className="absolute left-0 top-0 w-6 h-6 rounded-md bg-stone-900 flex items-center justify-center text-white text-[10px] font-bold">2</div>
+                        <h4 className="text-sm font-bold text-stone-800 mb-2">
+                          {lang === 'zh' ? 'Agent 自动完成安装' : 'Agent Auto-completes Installation'}
+                        </h4>
+                        <p className="text-xs text-stone-500 leading-relaxed">
+                          {lang === 'zh' ? '💡 Agent 接到指令后，将自动完成：下载 Skill 压缩包 → 解压到本地 → 注册安装 → 配置 Token。' : '💡 After receiving the command, Agent will automatically: download Skill package → extract locally → register & install → configure Token.'}
+                        </p>
+                      </div>
+
+                      {/* Step 3: Use Skill */}
+                      <div className="relative pl-10">
+                        {/* Timeline dot (no line after) */}
+                        <div className="absolute left-0 top-0 w-6 h-6 rounded-md bg-stone-900 flex items-center justify-center text-white text-[10px] font-bold">3</div>
+                        <h4 className="text-sm font-bold text-stone-800 mb-2">
+                          {lang === 'zh' ? '使用 Skill' : 'Use Skill'}
+                        </h4>
+                        <p className="text-xs text-stone-500 leading-relaxed mb-3">
+                          💡 {lang === 'zh' ? '安装成功，你可以开始使用 MindX 强大的 Skill 了。' : 'Installation complete. You can start using MindX powerful Skills now.'}
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-stone-50 border border-stone-200/60">
+                            <span className="text-xs font-bold text-stone-800 shrink-0">{lang === 'zh' ? '斜杠命令' : 'Slash Command'}</span>
+                            <span className="text-xs text-stone-500">—</span>
+                            <span className="text-xs text-stone-600 leading-relaxed">{lang === 'zh' ? '在聊天中输入 /技能名（如 /mindx doc）直接触发' : 'Type /skill-name (e.g. /mindx doc) in chat to trigger directly'}</span>
+                          </div>
+                          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-stone-50 border border-stone-200/60">
+                            <span className="text-xs font-bold text-stone-800 shrink-0">{lang === 'zh' ? '自动调用' : 'Auto Invoke'}</span>
+                            <span className="text-xs text-stone-500">—</span>
+                            <span className="text-xs text-stone-600 leading-relaxed">{lang === 'zh' ? 'Agent 根据对话上下文自动判断该用哪个 Skill，你不需要手动指定' : 'Agent automatically determines which Skill to use based on conversation context'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Optional steps — dimmed, side by side */}
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {/* Step 4: Version Update */}
+                        <div className="bg-stone-50/40 border border-stone-200/40 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-5 h-5 rounded bg-stone-300 flex items-center justify-center text-white shrink-0">
+                              <Package className="w-3 h-3" />
+                            </div>
+                            <p className="text-xs font-semibold text-stone-400">
+                              {lang === 'zh' ? 'Skill 版本更新' : 'Skill Version Update'}
+                            </p>
+                            <span className="text-[9px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">{lang === 'zh' ? '可选' : 'Optional'}</span>
+                          </div>
+                          <p className="text-xs text-stone-400 leading-relaxed mb-2">
                             {lang === 'zh' 
-                              ? '安装后需要设置对应的环境变量。在 MindX Dashboard 中创建 Agent 后会自动生成对应的 Token。'
-                              : 'After installation, set the required environment variables. Tokens will be generated automatically when you create an Agent in the MindX Dashboard.'
+                              ? '一键复制指令到 Agent，即可升级到最新版本。'
+                              : 'Copy command to Agent to upgrade to latest.'
                             }
                           </p>
+                          <div className="relative group/upgrade">
+                            <div className="bg-stone-100/80 rounded-lg px-3 py-1.5 text-[11px] font-mono text-stone-500 pr-8 truncate">
+                              {lang === 'zh' ? '帮我把 MindX 的 Skill 升级到最新版本' : 'Help me upgrade the MindX Skill to the latest version'}
+                            </div>
+                            <button
+                              onClick={() => {
+                                const cmd = lang === 'zh' ? '帮我把 MindX 的 Skill 升级到最新版本' : 'Help me upgrade the MindX Skill to the latest version';
+                                navigator.clipboard.writeText(cmd);
+                                setCopiedStates(prev => ({ ...prev, skillUpgrade: true }));
+                                setTimeout(() => setCopiedStates(prev => ({ ...prev, skillUpgrade: false })), 2000);
+                              }}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-stone-200 text-stone-400 hover:text-stone-600 transition-all"
+                            >
+                              {copiedStates['skillUpgrade'] ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Step 5: Token Leak */}
+                        <div className="bg-stone-50/40 border border-stone-200/40 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-5 h-5 rounded bg-stone-300 flex items-center justify-center text-white shrink-0">
+                              <Shield className="w-3 h-3" />
+                            </div>
+                            <p className="text-xs font-semibold text-stone-400">
+                              {lang === 'zh' ? 'Token 泄露处理' : 'Token Leak Handling'}
+                            </p>
+                            <span className="text-[9px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">{lang === 'zh' ? '若有' : 'If needed'}</span>
+                          </div>
+                          <p className="text-xs text-stone-400 leading-relaxed mt-1 mb-2.5">
+                            {lang === 'zh' ? '如果你的 Token 需要调整，可以点击下面两个操作。' : 'If your Token needs adjustment, use the actions below.'}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors">
+                              <Copy className="w-3 h-3" />
+                              {lang === 'zh' ? '复制 Token' : 'Copy Token'}
+                            </button>
+                            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors">
+                              <Shield className="w-3 h-3" />
+                              {lang === 'zh' ? '重置 Token' : 'Reset Token'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
