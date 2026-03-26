@@ -86,12 +86,12 @@ interface AgentPermission {
 }
 
 const initialDocuments: WorkspaceDoc[] = [
-  { id: 'd1', workspaceId: 'w1', name: 'Project Alpha Architecture', type: 'Smart Doc', date: '2 hours ago', lastModified: '2026-03-24T12:00:00Z', lastViewed: '2026-03-24T13:30:00Z', labels: ['Project Alpha', 'PRD'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd2', workspaceId: 'w1', name: 'Q3 Financial Projections', type: 'Table', date: 'Yesterday', lastModified: '2026-03-23T10:00:00Z', lastViewed: '2026-03-24T09:00:00Z', labels: ['Data', 'Finance'], creatorName: 'Data Analyzer', creatorType: 'agent' },
-  { id: 'd3', workspaceId: 'w1', name: 'User Flow Diagram', type: 'Whiteboard', date: 'Last week', lastModified: '2026-03-17T15:00:00Z', lastViewed: '2026-03-22T11:00:00Z', labels: ['Design', 'Project Alpha'], creatorName: currentUser.name, creatorType: 'human' },
-  { id: 'd6', workspaceId: 'w1', name: 'Claude & Maya: Feature Discussion', type: 'Smart Doc', date: '3 hours ago', lastModified: '2026-03-24T11:00:00Z', lastViewed: '2026-03-24T11:30:00Z', labels: ['Meeting Notes'], creatorName: 'Claude Assistant', creatorType: 'agent' },
-  { id: 'd4', workspaceId: 'w1', name: 'Competitor Analysis', type: 'Markdown', date: '1 hour ago', lastModified: '2026-03-24T13:00:00Z', lastViewed: '2026-03-24T13:45:00Z', labels: ['Research', 'Data'], creatorName: 'Research Bot', creatorType: 'agent' },
-  { id: 'd5', workspaceId: 'w1', name: 'Marketing Strategy', type: 'Smart Doc', date: '2 days ago', lastModified: '2026-03-22T14:00:00Z', lastViewed: '2026-03-23T16:00:00Z', labels: ['PRD', 'Marketing'], creatorName: currentUser.name, creatorType: 'human' },
+  { id: 'd1', workspaceId: 'w1', name: 'Project Alpha Architecture', type: 'Smart Doc', date: '2 hours ago', lastModified: '2026-03-24T12:00:00Z', lastViewed: '2026-03-24T13:30:00Z', labels: ['Project Alpha', 'PRD'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 32768 },
+  { id: 'd2', workspaceId: 'w1', name: 'Q3 Financial Projections', type: 'Table', date: 'Yesterday', lastModified: '2026-03-23T10:00:00Z', lastViewed: '2026-03-24T09:00:00Z', labels: ['Data', 'Finance'], creatorName: 'Data Analyzer', creatorType: 'agent', size: 65536 },
+  { id: 'd3', workspaceId: 'w1', name: 'User Flow Diagram', type: 'Whiteboard', date: 'Last week', lastModified: '2026-03-17T15:00:00Z', lastViewed: '2026-03-22T11:00:00Z', labels: ['Design', 'Project Alpha'], creatorName: currentUser.name, creatorType: 'human', size: 128000 },
+  { id: 'd6', workspaceId: 'w1', name: 'Claude & Maya: Feature Discussion', type: 'Smart Doc', date: '3 hours ago', lastModified: '2026-03-24T11:00:00Z', lastViewed: '2026-03-24T11:30:00Z', labels: ['Meeting Notes'], creatorName: 'Claude Assistant', creatorType: 'agent', size: 24576 },
+  { id: 'd4', workspaceId: 'w1', name: 'Competitor Analysis', type: 'Markdown', date: '1 hour ago', lastModified: '2026-03-24T13:00:00Z', lastViewed: '2026-03-24T13:45:00Z', labels: ['Research', 'Data'], creatorName: 'Research Bot', creatorType: 'agent', size: 40960 },
+  { id: 'd5', workspaceId: 'w1', name: 'Marketing Strategy', type: 'Smart Doc', date: '2 days ago', lastModified: '2026-03-22T14:00:00Z', lastViewed: '2026-03-23T16:00:00Z', labels: ['PRD', 'Marketing'], creatorName: currentUser.name, creatorType: 'human', size: 53248 },
   // Agent scheduled task outputs — Daily Industry Digest
   { id: 'd7', workspaceId: 'w1', name: 'Industry Digest — Mar 24', type: 'Markdown', date: 'Today', lastModified: '2026-03-24T08:00:00Z', lastViewed: '2026-03-24T10:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 45056 },
   { id: 'd8', workspaceId: 'w1', name: 'Industry Digest — Mar 23', type: 'Markdown', date: 'Yesterday', lastModified: '2026-03-23T08:00:00Z', lastViewed: '2026-03-23T12:00:00Z', labels: ['Daily Industry Digest'], creatorName: 'Research Bot', creatorType: 'agent', size: 43008 },
@@ -456,6 +456,7 @@ export default function Dashboard() {
   const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
   const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
   const [agentListMenuOpen, setAgentListMenuOpen] = useState<string | null>(null);
+  const [activityFilterOwner, setActivityFilterOwner] = useState<string>('all');
 
   // Document actions
   const [labelModalOpen, setLabelModalOpen] = useState(false);
@@ -498,6 +499,8 @@ export default function Dashboard() {
     setDocFilterType('all');
     setDocFilterOwner('all');
     setDocFilterLabel('all');
+    setActivityFilterOwner('all');
+
 
   };
 
@@ -593,6 +596,14 @@ export default function Dashboard() {
 
   const activeFilterCount = (docFilterType !== 'all' ? 1 : 0) + (docFilterOwner !== 'all' ? 1 : 0) + (docFilterLabel !== 'all' ? 1 : 0);
   const workspaceActivities = activities.filter(a => a.workspaceId === activeWorkspaceId);
+  const activityOwners = React.useMemo(() => {
+    return Array.from(new Set(workspaceActivities.map(a => a.userName)));
+  }, [workspaceActivities]);
+  const filteredActivities = React.useMemo(() => {
+    if (activityFilterOwner === 'all') return workspaceActivities;
+    return workspaceActivities.filter(a => a.userName === activityFilterOwner);
+  }, [workspaceActivities, activityFilterOwner]);
+
   const availableAgents = agents.filter(agent => !permissions.some(permission => permission.workspaceId === activeWorkspaceId && permission.memberId === agent.id));
   
   const workspacePermissions = permissions.filter(p => p.workspaceId === activeWorkspaceId).map(p => {
@@ -1023,16 +1034,17 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                {/* Owner filter tabs + active filter chips */}
-                <div className="flex items-center gap-1 mb-4 flex-wrap">
+                {/* Owner filter row */}
+                <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                   <button
                     onClick={() => setDocFilterOwner('all')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                       docFilterOwner === 'all' 
-                        ? 'bg-stone-200 text-stone-700' 
-                        : 'text-stone-500 hover:bg-stone-100 hover:text-stone-700'
+                        ? 'bg-stone-800 text-white' 
+                        : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
                     }`}
                   >
+                    <Users className="w-3 h-3" />
                     {t('docs.all')}
                   </button>
                   {docOwners.map(owner => {
@@ -1041,10 +1053,10 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                       <button
                         key={owner}
                         onClick={() => setDocFilterOwner(docFilterOwner === owner ? 'all' : owner)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                           docFilterOwner === owner 
-                            ? 'bg-stone-200 text-stone-700' 
-                            : 'text-stone-500 hover:bg-stone-100 hover:text-stone-700'
+                            ? 'bg-stone-800 text-white' 
+                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
                         }`}
                       >
                         {ownerDoc?.creatorType === 'agent' 
@@ -1054,62 +1066,39 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                       </button>
                     );
                   })}
-
-                  {/* Active type/label filter chips */}
-                  {(docFilterType !== 'all' || docFilterLabel !== 'all') && (
-                    <>
-                      <div className="w-px h-5 bg-stone-200 mx-1.5" />
-                      {docFilterType !== 'all' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium bg-stone-100 text-stone-700">
-                          {getDocTypeIcon(docFilterType, 14)}
-                          {docFilterType}
-                          <button
-                            onClick={() => setDocFilterType('all')}
-                            className="ml-0.5 p-0.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-600 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      )}
-                      {docFilterLabel !== 'all' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium bg-stone-100 text-stone-700">
-                          <Tag className="w-3.5 h-3.5 text-stone-400" />
-                          {docFilterLabel}
-                          <button
-                            onClick={() => setDocFilterLabel('all')}
-                            className="ml-0.5 p-0.5 rounded-full hover:bg-stone-200 text-stone-400 hover:text-stone-600 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      )}
-                    </>
-                  )}
                 </div>
 
-                {/* Label filter row */}
+                {/* Labels filter row */}
                 <div className="flex items-center gap-1.5 mb-4 flex-wrap">
-                  <Tag className="w-3.5 h-3.5 text-stone-300 shrink-0" />
-                  {docLabels.map(label => {
-                    const count = workspaceDocs.filter(d => d.labels.includes(label)).length;
-                    return (
-                      <button
-                        key={label}
-                        onClick={() => setDocFilterLabel(docFilterLabel === label ? 'all' : label)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                          docFilterLabel === label
-                            ? 'bg-stone-800 text-white'
-                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
-                        }`}
-                      >
-                        {label}
-                        <span className={`text-[10px] ${docFilterLabel === label ? 'text-stone-300' : 'text-stone-400'}`}>{count}</span>
-                      </button>
-                    );
-                  })}
+                  <button
+                    onClick={() => setDocFilterLabel('all')}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      docFilterLabel === 'all' 
+                        ? 'bg-stone-800 text-white' 
+                        : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
+                    }`}
+                  >
+                    <Tag className="w-3 h-3" />
+                    {t('docs.all')}
+                  </button>
+                  {docLabels.map(label => (
+                    <button
+                      key={label}
+                      onClick={() => setDocFilterLabel(docFilterLabel === label ? 'all' : label)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        docFilterLabel === label 
+                          ? 'bg-stone-800 text-white' 
+                          : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
 
-                <div className="border border-stone-200/80 rounded-xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.02)]" style={{ overflow: 'visible' }}>
+                {/* Document table */}
+                <div>
+                    <div className="border border-stone-200/80 rounded-xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.02)]" style={{ overflow: 'visible' }}>
                   <table className="w-full text-left text-sm">
                     <thead className="bg-stone-50/50 text-stone-500 border-b border-stone-200/80 rounded-t-xl [&>tr>th:first-child]:rounded-tl-xl [&>tr>th:last-child]:rounded-tr-xl">
                       <tr>
@@ -1268,6 +1257,7 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                       )}
                     </tbody>
                   </table>
+                    </div>
                 </div>
               </motion.div>
             )}
@@ -1277,7 +1267,39 @@ Command: Download the zip package from https://cdn.addon.tencentsuite.com/static
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <ActivityFeed activities={workspaceActivities} />
+                {/* Owner filter row */}
+                <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+                  <button
+                    onClick={() => setActivityFilterOwner('all')}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      activityFilterOwner === 'all' 
+                        ? 'bg-stone-800 text-white' 
+                        : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
+                    }`}
+                  >
+                    {t('docs.all')}
+                  </button>
+                  {activityOwners.map(owner => {
+                    const ownerActivity = workspaceActivities.find(a => a.userName === owner);
+                    return (
+                      <button
+                        key={owner}
+                        onClick={() => setActivityFilterOwner(activityFilterOwner === owner ? 'all' : owner)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                          activityFilterOwner === owner 
+                            ? 'bg-stone-800 text-white' 
+                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
+                        }`}
+                      >
+                        {ownerActivity?.userType === 'agent' 
+                          ? <Bot className="w-3.5 h-3.5" /> 
+                          : <User className="w-3.5 h-3.5" />}
+                        {owner}
+                      </button>
+                    );
+                  })}
+                </div>
+                <ActivityFeed activities={filteredActivities} />
               </motion.div>
             )}
 
